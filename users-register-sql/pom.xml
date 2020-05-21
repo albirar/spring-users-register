@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>cat.albirar.app</groupId>
+		<artifactId>spring-users-register</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>spring-users-register-sql</artifactId>
+	<packaging>jar</packaging>
+	<name>spring-users-register-sql</name>
+	<description>The SQL back-end for spring-users-register</description>
+
+	<dependencies>
+		<!-- Core library -->
+		<dependency>
+			<groupId>cat.albirar.app</groupId>
+			<artifactId>spring-users-register-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<!-- JDBC -->
+		<dependency>
+			<groupId>com.zaxxer</groupId>
+			<artifactId>HikariCP</artifactId>
+			<version>${hikari.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jdbc</artifactId>
+			<version>${spring.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<!-- MYSQL --> 
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>${mysql-driver.version}</version>
+			<optional>true</optional>
+		</dependency>
+		<!-- POSTGRESQL -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>${postgresql-driver.version}</version>
+			<optional>true</optional>
+		</dependency>
+		
+		<!-- Cache -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context-support</artifactId>
+			<version>${spring.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<!-- TEST -->
+		<dependency>
+			<groupId>${project.parent.groupId}</groupId>
+			<artifactId>users-register-core</artifactId>
+			<version>${project.parent.version}</version>
+			<classifier>tests</classifier>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<!-- POSTGRESQL TESTCONTAINER -->
+		<dependency>
+			<groupId>com.jupiter-tools</groupId>
+			<artifactId>spring-test-postgres</artifactId>
+			<version>${spring-test-postgresql.version}</version>
+		</dependency>		
+		<!-- MYSQL TESTCONTAINER -->
+		<dependency>
+			<groupId>com.jupiter-tools</groupId>
+			<artifactId>spring-test-mysql</artifactId>
+			<version>${spring-test-mysql.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

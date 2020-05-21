@@ -1,0 +1,18 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<title>Demo application</title>
+		<th:block th:include="fragments/header.html :: header"></th:block>
+	</head>
+	<body>
+		<nav th:replace="fragments/navbar.html :: navbar"></nav>
+		<h1>Demo application <span sec:authorize="isAuthenticated()">(*)</span></h1>
+		<div sec:authorize="isAuthenticated()">
+			Authenticated username:
+	        <div sec:authentication="name"></div>
+	        Authenticated user roles:
+	        <div sec:authentication="principal.authorities"></div>
+		</div>
+	</body>
+	<footer th:replace="fragments/footer.html :: footer"></footer>
+</html>

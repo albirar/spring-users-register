@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>cat.albirar.app</groupId>
+		<artifactId>spring-users-register</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>spring-users-register-mongodb</artifactId>
+	<packaging>jar</packaging>
+	<name>spring-users-register-mongodb</name>
+	<description>The MongoDb back-end for spring-users-register</description>
+
+	<dependencies>
+		<!-- Core library -->
+		<dependency>
+			<groupId>cat.albirar.app</groupId>
+			<artifactId>spring-users-register-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<!-- Mongodb -->
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongodb-driver</artifactId>
+			<version>${mongo-driver.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-mongodb</artifactId>
+			<version>${spring-data-mongodb.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>mongo-java-driver</artifactId>
+					<groupId>org.mongodb</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jcl-over-slf4j</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- TEST -->
+		<dependency>
+			<groupId>${project.parent.groupId}</groupId>
+			<artifactId>users-register-core</artifactId>
+			<version>${project.parent.version}</version>
+			<classifier>tests</classifier>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.jupiter-tools</groupId>
+			<artifactId>spring-test-mongo</artifactId>
+			<version>${spring-test-mongo.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>
