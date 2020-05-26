@@ -25,7 +25,7 @@ import cat.albirar.users.config.PropertiesCore;
  * @author Octavi Forn&eacute;s &lt;<a href="mailto:ofornes@albirar.cat">ofornes@albirar.cat</a>&gt;
  * @since 1.0.0
  */
-public abstract class PropertiesMongodb extends PropertiesCore {
+public interface PropertiesMongodb extends PropertiesCore {
     /**
      * Root for all mongodb back-end properties configuration.
      */

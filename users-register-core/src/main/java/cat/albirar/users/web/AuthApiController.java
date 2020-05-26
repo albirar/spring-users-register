@@ -21,7 +21,9 @@ package cat.albirar.users.web;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,12 +31,18 @@ import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import cat.albirar.users.models.tokens.ApprobationTokenBean;
+import cat.albirar.users.models.tokens.RecoverPasswordTokenBean;
 import cat.albirar.users.models.tokens.VerificationTokenBean;
+import cat.albirar.users.models.web.ChangePasswordBean;
 import cat.albirar.users.models.web.ProcessResultBean;
+import cat.albirar.users.models.web.ResultBean;
 import cat.albirar.users.registration.IRegistrationService;
 import cat.albirar.users.verification.EVerificationProcess;
 import cat.albirar.users.verification.ITokenManager;
@@ -67,6 +75,10 @@ public class AuthApiController {
      * URL template for approbation.
      */
     public static final String URL_TEMPLATE_APPROBATION = URL_APPROBATION + "/{" + PATH_VAR_TOKEN + "}";
+    /**
+     * URL for change password.
+     */
+    public static final String URL_CHANGE_PASSWORD = URL_ROOT + "/password";
 
     @Autowired
     private ITokenManager tokenManager;
@@ -74,72 +86,88 @@ public class AuthApiController {
     @Autowired
     private IRegistrationService registrationService;
     /**
-     * The verification endpoint.
+     * The verification end-point.
      * @param strToken The token to verify
      * @return The result of verification
-     * @throws ResponseStatusException with {@link HttpStatus#BAD_REQUEST} if token is invalid or expired or if no verification is needed; with {@link HttpStatus#NOT_FOUND} if user in token is not found
+     * @throws ResponseStatusException with {@link HttpStatus#BAD_REQUEST} if token is invalid or expired
+     * @throws ResponseStatusException with {@link HttpStatus#NOT_FOUND} if user in token is not found
      */
     @GetMapping(path = AuthApiController.URL_TEMPLATE_VERIFICATION, produces = MediaType.APPLICATION_JSON_VALUE)
     public @ResponseBody ProcessResultBean verifyToken(@PathVariable(PATH_VAR_TOKEN) @NotBlank String strToken) {
         Optional<Boolean> result;
-        Optional<VerificationTokenBean> oToken;
-        VerificationTokenBean token;
-        
-        oToken = tokenManager.decodeTokenEvenExpired(strToken);
-        if(oToken.isPresent()) {
-            token = oToken.get();
-            if(token.getExpire().isAfter(LocalDateTime.now())) {
-                if(token.getProcess() == EVerificationProcess.ONE_STEP
-                        || token.getProcess() == EVerificationProcess.TWO_STEP) {
-                    result = registrationService.userVerified(strToken);
-                    if(result.isPresent()) {
-                        return ProcessResultBean.builder()
-                                .tokenId(token.getTokenId())
-                                .date(LocalDateTime.now())
-                                .result(result.get().booleanValue())
-                                .lastStep(token.getProcess() == EVerificationProcess.ONE_STEP)
-                                .build();
-                    }
-                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User from token not found!");
-                }
-                throw new ResponseStatusException(HttpStatus.PRECONDITION_REQUIRED, "This token is not for one or two step verification!");
+        VerificationTokenBean vtk;
+        Optional<VerificationTokenBean> oVtk;
+
+        oVtk = tokenManager.decodeToken(VerificationTokenBean.class, strToken);
+        if(oVtk.isPresent()) {
+            vtk = oVtk.get();
+            result = registrationService.verifyUser(strToken);
+            if(result.isPresent()) {
+                return ProcessResultBean.builder()
+                        .tokenId(vtk.getTokenId())
+                        .date(LocalDateTime.now())
+                        .result(result.get().booleanValue())
+                        .lastStep(vtk.getProcess() == EVerificationProcess.ONE_STEP)
+                        .build();
             }
-            throw new ResponseStatusException(HttpStatus.PRECONDITION_FAILED, "Token expired!");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User from token not found!");
         }
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid token!");
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired token!");
     }
     /**
-     * The approbation endpoint.
+     * The approbation end-point.
      * @param strToken The token to verify
      * @return The result of approbation
-     * @throws ResponseStatusException with {@link HttpStatus#BAD_REQUEST} if token is invalid or expired or if no approbation is needed; with {@link HttpStatus#NOT_FOUND} if user in token is not found
+     * @throws ResponseStatusException with {@link HttpStatus#BAD_REQUEST} if token is invalid or expired
+     * @throws ResponseStatusException with {@link HttpStatus#NOT_FOUND} if user in token is not found
      */
     @GetMapping(path = AuthApiController.URL_TEMPLATE_APPROBATION, produces = MediaType.APPLICATION_JSON_VALUE)
     public @ResponseBody ProcessResultBean approveToken(@PathVariable(PATH_VAR_TOKEN) @NotBlank String strToken) {
         Optional<Boolean> result;
-        Optional<VerificationTokenBean> oToken;
-        VerificationTokenBean token;
+        ApprobationTokenBean atk;
+        Optional<ApprobationTokenBean> oAtk;
         
-        oToken = tokenManager.decodeTokenEvenExpired(strToken);
-        if(oToken.isPresent()) {
-            token = oToken.get();
-            if(token.getExpire().isAfter(LocalDateTime.now())) {
-                if(token.getProcess() == EVerificationProcess.TWO_STEP) {
-                    result = registrationService.userApproved(strToken);
-                    if(result.isPresent()) {
-                        return ProcessResultBean.builder()
-                                .tokenId(token.getTokenId())
-                                .date(LocalDateTime.now())
-                                .result(result.get().booleanValue())
-                                .lastStep(true) // in 2 steps process this is the last step 
-                                .build();
-                    }
-                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User from token not found!");
-                }
-                throw new ResponseStatusException(HttpStatus.PRECONDITION_REQUIRED, "This token is not for two step verification!");
+        oAtk = tokenManager.decodeToken(ApprobationTokenBean.class, strToken);
+        if(oAtk.isPresent()) {
+            atk = oAtk.get();
+            result = registrationService.approveUser(strToken);
+            if(result.isPresent()) {
+                return ProcessResultBean.builder()
+                        .tokenId(atk.getTokenId())
+                        .date(LocalDateTime.now())
+                        .result(result.get().booleanValue())
+                        .lastStep(true) // in 2 steps process this is the last step 
+                        .build();
             }
-            throw new ResponseStatusException(HttpStatus.PRECONDITION_FAILED, "Token expired!");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User from token not found!");
         }
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid token!");
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired token!");
+    }
+    /**
+     * The change password end-point.
+     * @param bean The bean with the information to change password.
+     * @return The result, with {@link ResultBean#isResult()} true if the users exists and state is verified or registered and password was changed, false if state of user is created and password was not changed 
+     * @throws ResponseStatusException with {@link HttpStatus#BAD_REQUEST} if token is invalid or expired
+     * @throws ResponseStatusException with {@link HttpStatus#NOT_FOUND} if user in token is not found
+     */
+    @PutMapping(path = AuthApiController.URL_CHANGE_PASSWORD, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public @ResponseBody ResultBean changePasswordToken(@RequestBody @NotNull @Valid ChangePasswordBean bean) {
+        Optional<RecoverPasswordTokenBean> otk;
+        Optional<Boolean> resp;
+        
+        otk = tokenManager.decodeToken(RecoverPasswordTokenBean.class, bean.getToken());
+        if(otk.isPresent()) {
+            resp = registrationService.recoverPassword(bean.getToken(), bean.getPassword());
+            if(resp.isPresent()) {
+                return ResultBean.builder()
+                        .tokenId(otk.get().getTokenId())
+                        .date(LocalDateTime.now())
+                        .result(resp.get())
+                        .build()
+                        ;
+            }
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User from token not found!");
+        }
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired token!");
     }
 }

@@ -25,9 +25,7 @@ import javax.validation.ConstraintViolationException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.util.StringUtils;
 
 import cat.albirar.users.models.account.AccountBean;
@@ -39,11 +37,7 @@ import cat.albirar.users.test.UsersRegisterTests;
  * @author Octavi Forn&eacute;s &lt;<a href="mailto:ofornes@albirar.cat">ofornes@albirar.cat</a>&gt;
  * @since 1.0.0
  */
-@DirtiesContext
 public abstract class AccountRepoTest extends UsersRegisterTests {
-    @Autowired
-    private IAccountRepo accountRepo;
-    
     @Test
     public void testFindAll() {
         List<AccountBean> r;

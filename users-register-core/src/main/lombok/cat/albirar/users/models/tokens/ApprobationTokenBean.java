@@ -53,7 +53,7 @@ public class ApprobationTokenBean extends AbstractTokenBean implements Serializa
     private String approverId;
     @NotBlank
     @Setter(onParam_ = {@NotBlank})
-    private String ApproverUsername;
+    private String approverUsername;
     /** {@inheritDoc} */
     @Override
     public ETokenClass getTokenClass() {

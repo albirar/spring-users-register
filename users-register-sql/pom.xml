@@ -16,7 +16,7 @@
 	<dependencies>
 		<!-- Core library -->
 		<dependency>
-			<groupId>cat.albirar.app</groupId>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>spring-users-register-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -47,20 +47,12 @@
 			<version>${postgresql-driver.version}</version>
 			<optional>true</optional>
 		</dependency>
-		
-		<!-- Cache -->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context-support</artifactId>
-			<version>${spring.version}</version>
-			<scope>compile</scope>
-		</dependency>
 
 		<!-- TEST -->
 		<dependency>
-			<groupId>${project.parent.groupId}</groupId>
-			<artifactId>users-register-core</artifactId>
-			<version>${project.parent.version}</version>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>spring-users-register-core</artifactId>
+			<version>${project.version}</version>
 			<classifier>tests</classifier>
 			<type>test-jar</type>
 			<scope>test</scope>

@@ -83,6 +83,6 @@ public abstract class RegistrationServiceNoneTest extends UsersRegisterTests {
         Assertions.assertNotNull(usr.getRegistered());
         Assertions.assertTrue(usr.getRegistered().minusSeconds(1).isBefore(ldt)
                 && usr.getRegistered().plusSeconds(1).isAfter(ldt));
-        Assertions.assertFalse(usr.isEnabled());        
+        Assertions.assertTrue(usr.isEnabled());        
     }
 }

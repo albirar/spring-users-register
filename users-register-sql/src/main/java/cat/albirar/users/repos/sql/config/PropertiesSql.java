@@ -27,7 +27,7 @@ import cat.albirar.users.config.PropertiesCore;
  * @author Octavi Forn&eacute;s &lt;<a href="mailto:ofornes@albirar.cat">ofornes@albirar.cat</a>&gt;
  * @since 1.0.0
  */
-public class PropertiesSql extends PropertiesCore {
+public interface PropertiesSql extends PropertiesCore {
     /**
      * Root of all SQL configuration properties.
      */

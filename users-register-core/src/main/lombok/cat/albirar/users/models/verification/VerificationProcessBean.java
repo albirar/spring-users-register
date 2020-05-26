@@ -24,8 +24,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-import org.springframework.core.io.Resource;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -47,11 +45,8 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @JsonInclude(Include.NON_EMPTY)
 public class VerificationProcessBean implements Serializable {
-    private static final long serialVersionUID = 726243394895059000L;
+    private static final long serialVersionUID = 6868473157147803454L;
     
-    @Setter(onParam_ = {@NotNull})
-    @NotNull
-    private Resource template;
     @Setter(onParam_ = {@NotBlank})
     @NotBlank
     private String token;

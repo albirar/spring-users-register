@@ -26,29 +26,23 @@ import javax.validation.ValidationException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.test.annotation.DirtiesContext;
 
+import cat.albirar.users.models.tokens.ApprobationTokenBean;
 import cat.albirar.users.models.tokens.VerificationTokenBean;
 import cat.albirar.users.models.users.UserBean;
 import cat.albirar.users.services.RegistrationService;
 import cat.albirar.users.test.UsersRegisterAbstractDataTest;
 import cat.albirar.users.test.UsersRegisterTests;
 import cat.albirar.users.verification.EVerificationProcess;
-import cat.albirar.users.verification.ITokenManager;
 
 /**
  * Test for invalid constraints on {@link RegistrationService}.
  * @author Octavi Forn&eacute;s &lt;<a href="mailto:ofornes@albirar.cat">ofornes@albirar.cat</a>&gt;
  * @since 1.0.0
  */
-@DirtiesContext
 public abstract class RegistrationServiceInvalidConstraintsTest extends UsersRegisterTests {
-
-    @Autowired
-    private ITokenManager tokenManager;
     /**
      * Test {@link RegistrationService#registerUser(String, cat.albirar.users.models.communications.CommunicationChannel, String)} for:
      * <ul>
@@ -66,7 +60,7 @@ public abstract class RegistrationServiceInvalidConstraintsTest extends UsersReg
     }
 
     /**
-     * Test {@link RegistrationService#userVerified(String)} for:
+     * Test {@link RegistrationService#verifyUser(String)} for:
      * <ul>
      * <li>Invalid token</li>
      * <li>Token expired</li>
@@ -81,46 +75,38 @@ public abstract class RegistrationServiceInvalidConstraintsTest extends UsersReg
         VerificationTokenBean vtk;
         
         // Invalid token
-        r = registrationService.userVerified(DUMMY_TOKEN);
+        r = registrationService.verifyUser(DUMMY_TOKEN);
         Assertions.assertTrue(r.isPresent());
         Assertions.assertFalse(r.get());
-        
-        // Token expired
-        vtk = VerificationTokenBean.builder()
-                .expire(LocalDateTime.now().minusDays(5))
-                .idUser(SAMPLE_VERIFIED_USER.getId())
-                .username(SAMPLE_VERIFIED_USER.getUsername())
-                .issued(LocalDateTime.now().minusDays(15))
+
+        // Token template
+        vtk = buildAbstractToken(VerificationTokenBean.builder(), SAMPLE_VERIFIED_USER)
                 .process(EVerificationProcess.TWO_STEP)
-                .tokenId(SAMPLE_ID)
                 .build()
                 ;
         
-        r = registrationService.userVerified(tokenManager.encodeToken(vtk));
+        // Token expired
+        r = registrationService.verifyUser(tokenManager.encodeToken(vtk.toBuilder().expire(LocalDateTime.now().minusDays(2L)).build()));
         Assertions.assertTrue(r.isPresent());
         Assertions.assertFalse(r.get());
         
-        // Change expiration date
-        vtk = vtk.toBuilder().expire(LocalDateTime.now().plusDays(5)).build();
-        
-        
         // Process NONE, not verifiable
-        r = registrationService.userVerified(tokenManager.encodeToken(vtk.toBuilder().process(EVerificationProcess.NONE).build()));
+        r = registrationService.verifyUser(tokenManager.encodeToken(vtk.toBuilder().process(EVerificationProcess.NONE).build()));
         Assertions.assertTrue(r.isPresent());
         Assertions.assertFalse(r.get());
         
         // User not found
-        r = registrationService.userVerified(tokenManager.encodeToken(vtk.toBuilder().idUser(SAMPLE_ID).build()));
+        r = registrationService.verifyUser(tokenManager.encodeToken(vtk.toBuilder().idUser(SAMPLE_ID).build()));
         Assertions.assertFalse(r.isPresent());
         
         // User was verified
-        r = registrationService.userVerified(tokenManager.encodeToken(vtk.toBuilder().build()));
+        r = registrationService.verifyUser(tokenManager.encodeToken(vtk.toBuilder().build()));
         Assertions.assertTrue(r.isPresent());
         Assertions.assertFalse(r.get());
     }
 
     /**
-     * Test {@link RegistrationService#userApproved(String)} for:
+     * Test {@link RegistrationService#approveUser(String)} for:
      * <ul>
      * <li>Invalid token</li>
      * <li>Token expired</li>
@@ -134,48 +120,32 @@ public abstract class RegistrationServiceInvalidConstraintsTest extends UsersReg
     @Test
     public void testUserAproveInvalidConstraints() {
         Optional<Boolean> r;
-        VerificationTokenBean vtk;
+        ApprobationTokenBean atkb;
         
         // Invalid token
-        r = registrationService.userApproved(DUMMY_TOKEN);
+        r = registrationService.approveUser(DUMMY_TOKEN);
         Assertions.assertTrue(r.isPresent());
         Assertions.assertFalse(r.get());
 
+        // Token template
+        atkb = tokenManager.generateApprobationTokenBean(SAMPLE_REGISTERED_USER, SAMPLE_REGISTERED_USER).get();
+        
         // Token expired
-        vtk = VerificationTokenBean.builder()
-                .expire(LocalDateTime.now().plusDays(5))
-                .idUser(SAMPLE_REGISTERED_USER.getId())
-                .issued(LocalDateTime.now().minusDays(1))
-                .process(EVerificationProcess.TWO_STEP)
-                .username(SAMPLE_REGISTERED_USER.getUsername())
-                .tokenId(SAMPLE_ID)
-                .build()
-                ;
-        r = registrationService.userApproved(tokenManager.encodeToken(vtk.toBuilder().expire(LocalDateTime.now().minusDays(5)).build()));
+        r = registrationService.approveUser(tokenManager.encodeToken(atkb.toBuilder().expire(LocalDateTime.now().minusDays(5)).build()));
         Assertions.assertTrue(r.isPresent());
         Assertions.assertFalse(r.get());
         
-        // Process NONE, not approvable
-        r = registrationService.userApproved(tokenManager.encodeToken(vtk.toBuilder().process(EVerificationProcess.NONE).build()));
-        Assertions.assertTrue(r.isPresent());
-        Assertions.assertFalse(r.get());
-        
-        // Process ONE_STEP, not approvable
-        r = registrationService.userApproved(tokenManager.encodeToken(vtk.toBuilder().process(EVerificationProcess.ONE_STEP).build()));
-        Assertions.assertTrue(r.isPresent());
-        Assertions.assertFalse(r.get());
-
         // User not found
-        r = registrationService.userApproved(tokenManager.encodeToken(vtk.toBuilder().idUser(SAMPLE_ID).build()));
+        r = registrationService.approveUser(tokenManager.encodeToken(atkb.toBuilder().idUser(SAMPLE_ID).build()));
         Assertions.assertFalse(r.isPresent());
         
         // User was NOT verified
-        r = registrationService.userApproved(tokenManager.encodeToken(vtk.toBuilder().idUser(SAMPLE_CREATED_USER.getId()).build()));
+        r = registrationService.approveUser(tokenManager.encodeToken(atkb.toBuilder().idUser(SAMPLE_CREATED_USER.getId()).build()));
         Assertions.assertTrue(r.isPresent());
         Assertions.assertFalse(r.get());
         
         // User was registered (approved)
-        r = registrationService.userApproved(tokenManager.encodeToken(vtk.toBuilder().build()));
+        r = registrationService.approveUser(tokenManager.encodeToken(atkb.toBuilder().build()));
         Assertions.assertTrue(r.isPresent());
         Assertions.assertFalse(r.get());
     }
@@ -228,13 +198,9 @@ public abstract class RegistrationServiceInvalidConstraintsTest extends UsersReg
         Assertions.assertThrows(ValidationException.class, () -> registrationService.getUserByToken(""));
         Assertions.assertThrows(ValidationException.class, () -> registrationService.getUserByToken("   "));
 
-        vtk = VerificationTokenBean.builder()
-                .expire(LocalDateTime.now().plusDays(5))
-                .idUser(SAMPLE_REGISTERED_USER.getId())
-                .username(SAMPLE_REGISTERED_USER.getUsername())
-                .issued(LocalDateTime.now().minusDays(1))
+        // Token template
+        vtk = buildAbstractToken(VerificationTokenBean.builder(), SAMPLE_REGISTERED_USER)
                 .process(EVerificationProcess.TWO_STEP)
-                .tokenId(SAMPLE_ID)
                 .build()
                 ;
         // Invalid token
@@ -253,7 +219,7 @@ public abstract class RegistrationServiceInvalidConstraintsTest extends UsersReg
         Assertions.assertFalse(usr.isPresent());
 
         // User found
-        usr = registrationService.getUserByToken(tokenManager.encodeToken(vtk.toBuilder().idUser(SAMPLE_REGISTERED_USER.getId()).build()));
+        usr = registrationService.getUserByToken(tokenManager.encodeToken(vtk));
         Assertions.assertNotNull(usr);
         Assertions.assertTrue(usr.isPresent());
     }
@@ -303,23 +269,23 @@ public abstract class RegistrationServiceInvalidConstraintsTest extends UsersReg
         Assertions.assertThrows(DataRetrievalFailureException.class, () ->  registrationService.updateUser(SAMPLE_NEW_USER.toBuilder().id(DUMMY_ID).created(LocalDateTime.now().minusDays(1)).build()));
         
         // User not yet registered (set locked to be not equals as read from register)
-        Assertions.assertThrows(IllegalStateException.class, () ->  registrationService.updateUser(SAMPLE_CREATED_USER.toBuilder().locked(LocalDate.now()).build()));
+        Assertions.assertThrows(IllegalStateException.class, () ->  registrationService.updateUser(SAMPLE_CREATED_USER.toBuilder().password(PASSWORDS[0]).locked(LocalDate.now()).build()));
         
         // Attempt to update created timestamp
-        Assertions.assertThrows(IllegalArgumentException.class, () ->  registrationService.updateUser(SAMPLE_REGISTERED_USER.toBuilder().created(SAMPLE_REGISTERED_USER.getCreated().minusDays(10))
+        Assertions.assertThrows(IllegalArgumentException.class, () ->  registrationService.updateUser(SAMPLE_REGISTERED_USER.toBuilder().password(PASSWORDS[0]).created(SAMPLE_REGISTERED_USER.getCreated().minusDays(10))
                         .build()));
         // Attempt to update registered timestamp
-        Assertions.assertThrows(IllegalArgumentException.class, () ->  registrationService.updateUser(SAMPLE_REGISTERED_USER.toBuilder().registered(SAMPLE_REGISTERED_USER.getRegistered().minusDays(9))
+        Assertions.assertThrows(IllegalArgumentException.class, () ->  registrationService.updateUser(SAMPLE_REGISTERED_USER.toBuilder().password(PASSWORDS[0]).registered(SAMPLE_REGISTERED_USER.getRegistered().minusDays(9))
                         .build()));
         // Attempt to update verified timestamp
-        Assertions.assertThrows(IllegalArgumentException.class, () ->  registrationService.updateUser(SAMPLE_REGISTERED_USER.toBuilder().verified(SAMPLE_REGISTERED_USER.getVerified().minusDays(8))
+        Assertions.assertThrows(IllegalArgumentException.class, () ->  registrationService.updateUser(SAMPLE_REGISTERED_USER.toBuilder().password(PASSWORDS[0]).verified(SAMPLE_REGISTERED_USER.getVerified().minusDays(8))
                         .build()));
         
         // Update nothing
-        Assertions.assertFalse(registrationService.updateUser(SAMPLE_REGISTERED_USER.toBuilder().build()));
+        Assertions.assertFalse(registrationService.updateUser(SAMPLE_REGISTERED_USER.toBuilder().password(PASSWORDS[0]).build()));
         
         // Update locked timestamp
-        Assertions.assertTrue(registrationService.updateUser(SAMPLE_REGISTERED_USER.toBuilder().enabled(false).locked(LocalDate.now()).build()));
+        Assertions.assertTrue(registrationService.updateUser(SAMPLE_REGISTERED_USER.toBuilder().password(PASSWORDS[0]).enabled(false).locked(LocalDate.now()).build()));
         
     }
 }

@@ -95,9 +95,8 @@ public abstract class RegistrationServiceOneStepTest extends UsersRegisterTests 
         
         // Do the acceptance, should return TRUE and the persisted user should to be ENABLED and REGISTERED
         ldt1 = LocalDateTime.now().minusSeconds(1);
-        b = registrationService.userVerified(r.getToken().get());
+        b = registrationService.verifyUser(r.getToken().get());
         ldt2 = LocalDateTime.now().plusSeconds(1);
-        ldt2 = LocalDateTime.now();
         Assertions.assertNotNull(b);
         Assertions.assertTrue(b.isPresent());
         Assertions.assertTrue(b.get());

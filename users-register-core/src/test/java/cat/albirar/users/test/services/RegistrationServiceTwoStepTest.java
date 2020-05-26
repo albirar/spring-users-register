@@ -23,16 +23,14 @@ import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.util.StringUtils;
 
 import cat.albirar.users.models.registration.RegistrationProcessResultBean;
+import cat.albirar.users.models.tokens.ApprobationTokenBean;
 import cat.albirar.users.models.users.UserBean;
 import cat.albirar.users.registration.IRegistrationService;
-import cat.albirar.users.repos.IUserRepo;
 import cat.albirar.users.test.UsersRegisterTests;
 import cat.albirar.users.verification.EVerificationProcess;
 
@@ -41,12 +39,7 @@ import cat.albirar.users.verification.EVerificationProcess;
  * @author Octavi Forn&eacute;s &lt;<a href="mailto:ofornes@albirar.cat">ofornes@albirar.cat</a>&gt;
  * @since 1.0.0
  */
-@DirtiesContext
 public abstract class RegistrationServiceTwoStepTest extends UsersRegisterTests {
-
-    @Autowired
-    private IUserRepo userRepo;
-    
     @DynamicPropertySource
     public static void assignProperties(DynamicPropertyRegistry registry) {
         registry.add(IRegistrationService.VERIFICATION_MODE_PROPERTY_NAME, () -> EVerificationProcess.TWO_STEP.name());
@@ -75,11 +68,11 @@ public abstract class RegistrationServiceTwoStepTest extends UsersRegisterTests 
 
     @Test
     public void testAcceptance() {
-
         RegistrationProcessResultBean r;
         UserBean rUsr;
         Optional<UserBean> oUsr;
         Optional<Boolean> b;
+        ApprobationTokenBean tkb;
 
         Assumptions.assumeFalse(userRepo.existsByUsername(SAMPLE_NEW_USER.getUsername()));
         Assumptions.assumeFalse(userRepo.existsByPreferredChannel(SAMPLE_NEW_USER.getPreferredChannel()));
@@ -92,7 +85,7 @@ public abstract class RegistrationServiceTwoStepTest extends UsersRegisterTests 
         
         // Do the verification, should return TRUE and the persisted user should to be DISABLED and NOT-REGISTERED
         
-        b = registrationService.userVerified(r.getToken().get());
+        b = registrationService.verifyUser(r.getToken().get());
         Assertions.assertNotNull(b);
         Assertions.assertTrue(b.isPresent());
         Assertions.assertTrue(b.get());
@@ -108,8 +101,8 @@ public abstract class RegistrationServiceTwoStepTest extends UsersRegisterTests 
         Assertions.assertFalse(rUsr.isEnabled());        
         
         // Do the acceptance, should return TRUE and the persisted user should to be ENABLED and REGISTERED
-        
-        b = registrationService.userApproved(r.getToken().get());
+        tkb = tokenManager.generateApprobationTokenBean(rUsr, SAMPLE_REGISTERED_USER).get();
+        b = registrationService.approveUser(tokenManager.encodeToken(tkb));
         Assertions.assertNotNull(b);
         Assertions.assertTrue(b.isPresent());
         Assertions.assertTrue(b.get());

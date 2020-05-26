@@ -89,6 +89,7 @@ public interface IUserRepo {
      * Save (create or update) the indicated {@code user}.
      * <p>If {@link UserBean#getId()} is null or empty or blank or is informed but no users exists with this id, then its a <b>creating operation</b></p>
      * <p>Else its an <b>updating operation</b></p>
+     * <p><strong>ATENTION!!</string> if create or update password, save will NOT encode password, so, the {@link UserBean#getPassword()} should to be encoded!</p>
      * @param user The user
      * @return The saved user (if created, the {@link UserBean#getId()} is informed with the new id)
      * @throws DataIntegrityViolationException If the indicated {@link UserBean#getUsername()} or {@link UserBean#getPreferredChannel()} exists on registry associated with another account

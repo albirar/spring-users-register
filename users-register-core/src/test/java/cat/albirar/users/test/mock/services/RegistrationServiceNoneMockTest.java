@@ -16,21 +16,22 @@
  *
  * Copyright (C) 2020 Octavi Fornés
  */
-package cat.albirar.users.test.mocks.services.impl;
+package cat.albirar.users.test.mock.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import cat.albirar.users.repos.IUserRepo;
 import cat.albirar.users.test.mock.MockUtils;
-import cat.albirar.users.test.services.impl.RegistrationServiceInvalidConstraintsTest;
+import cat.albirar.users.test.services.RegistrationServiceNoneTest;
 
 /**
- * The mock backed for {@link RegistrationServiceInvalidConstraintsTest}.
+ * The mock backed for {@link RegistrationServiceNoneTest}.
  * @author Octavi Forn&eacute;s &lt;<a href="mailto:ofornes@albirar.cat">ofornes@albirar.cat</a>&gt;
  * @since 1.0.0
  */
-public class RegistrationServiceInvalidConstraintsMockTest extends RegistrationServiceInvalidConstraintsTest {
+public class RegistrationServiceNoneMockTest extends RegistrationServiceNoneTest {
+
     @Autowired
     private IUserRepo userRepo;
     

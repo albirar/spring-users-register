@@ -28,9 +28,7 @@ import javax.validation.ConstraintViolationException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.util.StringUtils;
 
 import cat.albirar.users.models.auth.AuthorizationBean;
@@ -45,11 +43,7 @@ import cat.albirar.users.test.UsersRegisterTests;
  * @author Octavi Forn&eacute;s &lt;<a href="mailto:ofornes@albirar.cat">ofornes@albirar.cat</a>&gt;
  * @since 1.0.0
  */
-@DirtiesContext
 public abstract class UserRepoTest extends UsersRegisterTests {
-    @Autowired
-    private IUserRepo userRepo;
-    
     @Test
     public void testCount() {
         Assertions.assertEquals((long)USERS.length, userRepo.count());
@@ -149,7 +143,7 @@ public abstract class UserRepoTest extends UsersRegisterTests {
         Assertions.assertThrows(ConstraintViolationException.class, () -> userRepo.existsBySecondaryChannel(CHANNELS[0].toBuilder().channelId("  ").build()));
         
         Assertions.assertFalse(userRepo.existsBySecondaryChannel(CHANNELS[0].toBuilder().channelId(DUMMY_NAME).build()));
-        Assertions.assertTrue(userRepo.existsBySecondaryChannel(CHANNELS[4]));
+        Assertions.assertTrue(userRepo.existsBySecondaryChannel(CHANNELS[3]));
     }
     
     @Test

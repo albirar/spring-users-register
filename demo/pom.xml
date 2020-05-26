@@ -65,7 +65,7 @@
 
 		<dependency>
 			<groupId>cat.albirar.app</groupId>
-			<artifactId>users-register-sql</artifactId>
+			<artifactId>spring-users-register-sql</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 

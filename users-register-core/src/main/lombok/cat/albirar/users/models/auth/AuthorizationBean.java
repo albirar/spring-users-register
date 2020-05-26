@@ -45,7 +45,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(Include.NON_EMPTY)
-public class AuthorizationBean implements GrantedAuthority, Serializable {
+public class AuthorizationBean implements GrantedAuthority, Serializable, Comparable<AuthorizationBean> {
     private static final long serialVersionUID = 1726612662095845083L;
     
     /**
@@ -56,4 +56,20 @@ public class AuthorizationBean implements GrantedAuthority, Serializable {
     @Setter(onParam_ = { @NotBlank })
     @Default
     private String authority = ERole.User.name();
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int compareTo(AuthorizationBean o) {
+        if(authority == null && o.getAuthority() == null) {
+            return 0;
+        }
+        if(authority == null) {
+            return -1;
+        }
+        if(o.getAuthority() == null) {
+            return 1;
+        }
+        return authority.compareTo(o.getAuthority());
+    }
 }

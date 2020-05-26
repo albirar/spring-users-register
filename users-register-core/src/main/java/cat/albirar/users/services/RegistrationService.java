@@ -21,18 +21,17 @@ package cat.albirar.users.services;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import javax.validation.ValidationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -40,9 +39,8 @@ import cat.albirar.users.models.auth.AuthorizationBean;
 import cat.albirar.users.models.auth.ERole;
 import cat.albirar.users.models.communications.CommunicationChannel;
 import cat.albirar.users.models.registration.RegistrationProcessResultBean;
-import cat.albirar.users.models.tokens.AbstractTokenBean;
 import cat.albirar.users.models.tokens.ApprobationTokenBean;
-import cat.albirar.users.models.tokens.ETokenClass;
+import cat.albirar.users.models.tokens.RecoverPasswordTokenBean;
 import cat.albirar.users.models.tokens.VerificationTokenBean;
 import cat.albirar.users.models.users.UserBean;
 import cat.albirar.users.models.verification.VerificationProcessBean;
@@ -65,6 +63,7 @@ public class RegistrationService implements IRegistrationService {
     
     @Value("${" + VERIFICATION_MODE_PROPERTY_NAME + ":NONE}")
     private EVerificationProcess verification;
+    
     @Autowired
     private IUserRepo userRepo;
     
@@ -73,9 +72,9 @@ public class RegistrationService implements IRegistrationService {
     
     @Autowired
     private ITokenManager tokenManager;
-
-    @Value("${albirar.auth.registration.template}")
-    private Resource registrationTemplate;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     /**
      * {@inheritDoc}
      */
@@ -118,7 +117,6 @@ public class RegistrationService implements IRegistrationService {
             vBean = VerificationProcessBean.builder()
                     .channel(preferredChannel)
                     .token(token)
-                    .template(registrationTemplate)
                     .build()
                     ;
             idVerification = verificationProcessService.startVerifyProcess(vBean);
@@ -136,45 +134,34 @@ public class RegistrationService implements IRegistrationService {
      * {@inheritDoc}
      */
     @Override
-    public Optional<Boolean> userVerified(String token) {
+    public Optional<Boolean> verifyUser(String token) {
         UserBean usr;
         Optional<UserBean> oUsr;
-        Optional<AbstractTokenBean> oTkBean;
-        AbstractTokenBean aTkBean;
+        Optional<VerificationTokenBean> oTkBean;
         VerificationTokenBean tkBean;
         
         LOGGER.debug("Verifying string token {}", token);
-        oTkBean = tokenManager.decodeToken(token);
+        oTkBean = tokenManager.decodeToken(VerificationTokenBean.class, token);
         
         if(oTkBean.isPresent()) {
-            aTkBean = oTkBean.get();
-            LOGGER.debug("Verifying token {}", aTkBean);
-            if(aTkBean.getTokenClass() == ETokenClass.VERIFICATION) {
-                tkBean = (VerificationTokenBean)aTkBean;
-                if(tkBean.getProcess() == EVerificationProcess.ONE_STEP
-                        || tkBean.getProcess() == EVerificationProcess.TWO_STEP) {
-                    oUsr = userRepo.findById(tkBean.getIdUser());
-                    if(!oUsr.isPresent()) {
-                        LOGGER.warn("The user at token {} is not found, cannot be verified!", token);
-                        return Optional.empty();
-                    }
-                    usr = oUsr.get();
-                    LOGGER.debug("Token {} contains user {}", tkBean, usr);
-                    if(usr.getVerified() == null) {
-                        usr.setVerified(LocalDateTime.now());
-                        if(tkBean.getProcess() != EVerificationProcess.TWO_STEP) {
-                            usr.setRegistered(usr.getVerified());
-                        }
-                        usr.setEnabled(usr.getRegistered() != null);
-                        userRepo.save(usr);
-                        LOGGER.debug("User {} IS verified!", usr);
-                        return Optional.of(true);
-                    }
-                } else {
-                    LOGGER.warn("The process of the token {} is not verifiable, cannot process!", tkBean);
+            tkBean = oTkBean.get();
+            LOGGER.debug("Verifying token {}", tkBean);
+            oUsr = userRepo.findById(tkBean.getIdUser());
+            if(!oUsr.isPresent()) {
+                LOGGER.warn("The user at token {} is not found, cannot be verified!", token);
+                return Optional.empty();
+            }
+            usr = oUsr.get();
+            LOGGER.debug("Token {} contains user {}", tkBean, usr);
+            if(usr.getVerified() == null) {
+                usr.setVerified(LocalDateTime.now());
+                if(tkBean.getProcess() != EVerificationProcess.TWO_STEP) {
+                    usr.setRegistered(usr.getVerified());
                 }
-            } else {
-                LOGGER.error("A {} token is used as a {} token!", aTkBean.getTokenClass().name(), ETokenClass.VERIFICATION.name());
+                usr.setEnabled(usr.getRegistered() != null);
+                userRepo.save(usr);
+                LOGGER.debug("User {} IS verified!", usr);
+                return Optional.of(true);
             }
         } else {
             LOGGER.warn("The string token {} cannot be decoded, no verification can be made!", token);
@@ -185,47 +172,74 @@ public class RegistrationService implements IRegistrationService {
      * {@inheritDoc}
      */
     @Override
-    public Optional<Boolean> userApproved(String token) {
+    public Optional<Boolean> approveUser(String token) {
         UserBean usr;
         Optional<UserBean> oUsr;
-        Optional<AbstractTokenBean> oTkBean;
-        AbstractTokenBean aTkBean;
+        Optional<ApprobationTokenBean> oTkBean;
         ApprobationTokenBean tkBean;
         
         LOGGER.debug("Approving string token {}", token);
-        oTkBean = tokenManager.decodeToken(token);
+        oTkBean = tokenManager.decodeToken(ApprobationTokenBean.class, token);
         
         if(oTkBean.isPresent()) {
-            aTkBean = oTkBean.get();
-            LOGGER.debug("Verifying token {}", aTkBean);
-            if(aTkBean.getTokenClass() == ETokenClass.APPROBATION) {
-                tkBean = (ApprobationTokenBean) aTkBean;
-                LOGGER.debug("Approving token {}", tkBean);
-                oUsr = userRepo.findById(tkBean.getIdUser());
-                if(!oUsr.isPresent()) {
-                    LOGGER.warn("The user at token {} is not found, cannot be approved!", token);
-                    return Optional.empty();
-                }
-                usr = oUsr.get();
-                LOGGER.debug("Token {} contains user {}", tkBean, usr);
-                if(usr.getVerified() != null) {
-                    if(usr.getRegistered() == null) {
-                        usr.setRegistered(LocalDateTime.now());
-                        usr.setEnabled(true);
-                        userRepo.save(usr);
-                        LOGGER.debug("User {} IS approved!", usr);
-                        return Optional.of(true);
-                    } else {
-                        LOGGER.warn("The user was approbed before, cannot process!", tkBean);
-                    }
+            tkBean = oTkBean.get();
+            LOGGER.debug("Approving token {}", tkBean);
+            oUsr = userRepo.findById(tkBean.getIdUser());
+            if(!oUsr.isPresent()) {
+                LOGGER.warn("The user at token {} is not found, cannot be approved!", token);
+                return Optional.empty();
+            }
+            usr = oUsr.get();
+            LOGGER.debug("Token {} contains user {}", tkBean, usr);
+            if(usr.getVerified() != null) {
+                if(usr.getRegistered() == null) {
+                    usr.setRegistered(LocalDateTime.now());
+                    usr.setEnabled(true);
+                    userRepo.save(usr);
+                    LOGGER.debug("User {} IS approved!", usr);
+                    return Optional.of(true);
                 } else {
-                    LOGGER.warn("The user was not verifyied before, cannot process!", tkBean);
+                    LOGGER.warn("The user was approbed before, cannot process!", tkBean);
                 }
             } else {
-                LOGGER.error("A {} token is used as a {} token!", aTkBean.getTokenClass().name(), ETokenClass.VERIFICATION.name());
+                LOGGER.warn("The user was not verifyied before, cannot process!", tkBean);
             }
         } else {
             LOGGER.warn("The string token {} cannot be decoded, no approbation can be made!", token);
+        }
+        return Optional.of(false);
+    }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Optional<Boolean> recoverPassword(String token, String newPassword) {
+        Optional<RecoverPasswordTokenBean> oTk;
+        RecoverPasswordTokenBean tk;
+        Optional<UserBean> oUsr;
+        
+        LOGGER.debug("Recover password string token {}", token);
+        
+        oTk = tokenManager.decodeToken(RecoverPasswordTokenBean.class, token);
+        
+        if(oTk.isPresent()) {
+            tk = oTk.get();
+            LOGGER.debug("Recover password token {}", tk);
+            oUsr = userRepo.findById(tk.getIdUser());
+            
+            if(oUsr.isPresent()) {
+                if(oUsr.get().getRegistered() != null) {
+                    oUsr.get().setPassword(passwordEncoder.encode(newPassword));
+                    userRepo.save(oUsr.get());
+                    LOGGER.info("Password changed successfully for user {} with id {}", oUsr.get().getUsername(), tk.getIdUser());
+                    return Optional.of(true);
+                } else {
+                    LOGGER.debug("Cannot change password for unregistered user {} with id {}", oUsr.get().getUsername(), oUsr.get().getId());
+                    return Optional.of(false);
+                }
+            }
+            LOGGER.warn("The user with id {} at token {} is not found, cannot recover password!", tk.getIdUser(), token);
+            return Optional.empty();
         }
         return Optional.of(false);
     }
@@ -240,20 +254,24 @@ public class RegistrationService implements IRegistrationService {
      * {@inheritDoc}
      */
     @Override
-    public Optional<UserBean> getUserById(@NotBlank String id) {
+    public Optional<UserBean> getUserById(String id) {
         return userRepo.findById(id);
     }
     /**
      * {@inheritDoc}
      */
     @Override
-    public Optional<UserBean> getUserByToken(String registrationToken) {
+    public Optional<UserBean> getUserByToken(String token) {
         Optional<UserBean> r;
-        Optional<AbstractTokenBean> oTk;
+        Optional<String> oUid;
         
-        oTk = tokenManager.decodeToken(registrationToken);
-        if(oTk.isPresent()) {
-            r = userRepo.findById(oTk.get().getIdUser());
+        oUid = tokenManager.decodeUserId(token);
+        if(oUid.isPresent()) {
+            try {
+                r = userRepo.findById(oUid.get());
+            } catch (ValidationException e) {
+                r = Optional.empty();
+            }
         } else {
             r = Optional.empty();
         }
@@ -269,15 +287,17 @@ public class RegistrationService implements IRegistrationService {
         
         oUsr = userRepo.findById(user.getId());
         if(oUsr.isPresent()) {
-            if(!oUsr.get().equals(user)) {
+            // Check for equals, test password with passwordEncoder and sort authorities
+            if(!equalsUsers(oUsr.get(), user)) {
                 aUser = oUsr.get();
+                // Only updates on registered users...
                 if(aUser.getRegistered() != null) {
                     // No changes can be made on created, verified and registered timestamps
                     if(aUser.getRegistered().equals(user.getRegistered())
                             && aUser.getVerified().equals(user.getVerified())
                             && aUser.getCreated().equals(user.getCreated())) {
                         // Update
-                        userRepo.save(user);
+                        aUser = userRepo.save(user.toBuilder().password(passwordEncoder.encode(user.getPassword())).build());
                         return true;
                     }
                     throw new IllegalArgumentException(String.format("No changes can be made to registered date or verified date or created date for user id %s!", user.getId()));
@@ -289,12 +309,18 @@ public class RegistrationService implements IRegistrationService {
         throw new DataRetrievalFailureException(String.format("No user with %s id was found", user.getId()));
     }
     
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String recoverPassword(@NotNull @Valid UserBean user) {
-        // TODO Auto-generated method stub
-        return null;
+    private boolean equalsUsers(UserBean saved, UserBean update) {
+        if(!passwordEncoder.matches(update.getPassword(), saved.getPassword())) {
+            return false;
+        }
+        return saved.toBuilder()
+                    .password("XXX")
+                    .authorities(saved.getAuthorities().stream().sorted().collect(Collectors.toList()))
+                    .build()
+                .equals(update.toBuilder()
+                        .password("XXX")
+                        .authorities(update.getAuthorities().stream().sorted().collect(Collectors.toList()))
+                        .build()
+                );
     }
 }

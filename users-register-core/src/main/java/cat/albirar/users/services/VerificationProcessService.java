@@ -37,7 +37,7 @@ public class VerificationProcessService implements IVerificationProcessService {
      */
     @Override
     public long startVerifyProcess(VerificationProcessBean verificationProcess) {
-        // TODO Pending
+        // TODO Pending!
         /*
          * Planned to be:
          * 1. Generate link

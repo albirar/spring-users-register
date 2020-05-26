@@ -16,34 +16,27 @@
  *
  * Copyright (C) 2020 Octavi Fornés
  */
-package cat.albirar.users.models.web;
+package cat.albirar.users.test.mock.repos;
 
-import java.io.Serializable;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.experimental.SuperBuilder;
+import cat.albirar.users.repos.IAccountRepo;
+import cat.albirar.users.test.mock.MockUtils;
+import cat.albirar.users.test.repos.AccountRepoTest;
 
 /**
- * The resulting of verification or approbation.
+ * The mock backed test {@link AccountRepoTest}.
  * @author Octavi Forn&eacute;s &lt;<a href="mailto:ofornes@albirar.cat">ofornes@albirar.cat</a>&gt;
  * @since 1.0.0
  */
-@SuperBuilder(toBuilder = true)
-@Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonInclude(Include.NON_EMPTY)
-public class ProcessResultBean extends ResultBean implements Serializable {
-    private static final long serialVersionUID = 6950998185819894336L;
+public class AccountRepoMockTest extends AccountRepoTest {
+    @Autowired
+    private IAccountRepo accountRepo;
     
-    private boolean lastStep;
+    @BeforeEach
+    public void setupTest() {
+        MockUtils.instance().setupAccounts(accountRepo);
+    }
+
 }

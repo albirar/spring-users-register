@@ -159,7 +159,7 @@ public class UserRowMapper extends AbstractRowMapper implements IPrefixedColsRow
             parms.addValue(COL_SECONDARYCHANNEL_TYPE, null);
             parms.addValue(COL_SECONDARYCHANNEL_VALUE, null);
         }
-        parms.addValue(COL_PASSWORD, passwordEncoder.encode(user.getPassword()));
+        parms.addValue(COL_PASSWORD, user.getPassword());
         if(user.getCreated() != null) {
             parms.addValue(COL_CREATED, Timestamp.valueOf(user.getCreated()));
         } else {
@@ -221,9 +221,9 @@ public class UserRowMapper extends AbstractRowMapper implements IPrefixedColsRow
         if(!ObjectUtils.nullSafeEquals(original.getSecondaryChannel(), updated.getSecondaryChannel())) {
             if(updated.getSecondaryChannel() != null) {
                 sets.add(COL_SECONDARYCHANNEL_TYPE.concat("=:").concat(COL_SECONDARYCHANNEL_TYPE));
-                r.addValue(COL_SECONDARYCHANNEL_TYPE, updated.getPreferredChannel().getChannelType().name());
+                r.addValue(COL_SECONDARYCHANNEL_TYPE, updated.getSecondaryChannel().getChannelType().name());
                 sets.add(COL_SECONDARYCHANNEL_VALUE.concat("=:").concat(COL_SECONDARYCHANNEL_VALUE));
-                r.addValue(COL_SECONDARYCHANNEL_VALUE, updated.getPreferredChannel().getChannelId());
+                r.addValue(COL_SECONDARYCHANNEL_VALUE, updated.getSecondaryChannel().getChannelId());
             } else {
                 sets.add(COL_SECONDARYCHANNEL_TYPE.concat("=NULL"));
                 sets.add(COL_SECONDARYCHANNEL_VALUE.concat("=NULL"));
@@ -231,7 +231,7 @@ public class UserRowMapper extends AbstractRowMapper implements IPrefixedColsRow
         }
         if(StringUtils.hasText(updated.getPassword()) && !passwordEncoder.matches(updated.getPassword(), original.getPassword())) {
             sets.add(COL_PASSWORD.concat("=:").concat(COL_PASSWORD));
-            r.addValue(COL_PASSWORD, passwordEncoder.encode(updated.getPassword()));
+            r.addValue(COL_PASSWORD, updated.getPassword());
         }
         if(!ObjectUtils.nullSafeEquals(original.getVerified(), updated.getVerified())) {
             if(updated.getVerified() != null) {

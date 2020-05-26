@@ -21,6 +21,7 @@ package cat.albirar.users.registration;
 import java.util.Optional;
 
 import javax.validation.Valid;
+import javax.validation.ValidationException;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -32,9 +33,12 @@ import org.springframework.validation.annotation.Validated;
 import cat.albirar.users.config.PropertiesCore;
 import cat.albirar.users.models.communications.CommunicationChannel;
 import cat.albirar.users.models.registration.RegistrationProcessResultBean;
+import cat.albirar.users.models.tokens.AbstractTokenBean;
+import cat.albirar.users.models.tokens.ApprobationTokenBean;
+import cat.albirar.users.models.tokens.RecoverPasswordTokenBean;
+import cat.albirar.users.models.tokens.VerificationTokenBean;
 import cat.albirar.users.models.users.UserBean;
 import cat.albirar.users.verification.EVerificationProcess;
-import cat.albirar.users.verification.IVerificationProcessService;
 
 /**
  * Service for registration process.
@@ -54,15 +58,15 @@ public interface IRegistrationService {
      */
     public static final String VERIFICATION_MODE_PROPERTY_NAME = PropertiesCore.VERIFICATION_MODE_PROPERTY_NAME;
     /**
-     * Register a new user with the {@code user} as sample (confirmation is required).
+     * Register a new user with the {@code username}, {@code preferredChannel} and {@code password} (optional). 
      * The process is:
      * <ol>
-     * <li>Create the user at the registry but {@link UserBean#isEnabled() disabled}</li>
+     * <li>Create the user at the registry but {@link UserBean#isEnabled() disabled}, {@link UserBean#getVerified() not verified} and {@link UserBean#getRegistered() not registered}</li>
      * <li>Depending on value of property named {@value #VERIFICATION_MODE_PROPERTY_NAME}:
      *    <ul>
-     *       <li>{@link EVerificationProcess#NONE} without any verification in order to register the new user, that becomes {@link UserBean#isEnabled() enabled} upon creation</li>
-     *       <li>{@link EVerificationProcess#ONE_STEP} the owner of {@link UserBean#getPreferredChannel() preferred channel} should to confirm the registration of the new user, that becomes {@link UserBean#isEnabled() disabled} until confirmation is made</li>
-     *       <li>{@link EVerificationProcess#TWO_STEP} the owner of {@link UserBean#getPreferredChannel() preferred channel} should to confirm the registration and a supervisor should to approve the registration; meanwhile the new user becomes {@link UserBean#isEnabled() disabled} until confirmation AND approbation is made</li>
+     *       <li>If value is {@link EVerificationProcess#NONE}, no verification nor approbation is needed in order to register the new user, that becomes {@link UserBean#isEnabled() enabled}, {@link UserBean#getVerified() verified} and {@link UserBean#getRegistered() registered} upon creation</li>
+     *       <li>If value is {@link EVerificationProcess#ONE_STEP}, the owner of {@link UserBean#getPreferredChannel() preferred channel} should to verify the registration of the new user, that becomes {@link UserBean#isEnabled() disabled}, {@link UserBean#getVerified() not verified} and {@link UserBean#getRegistered() not registered} until verification is made</li>
+     *       <li>If value is {@link EVerificationProcess#TWO_STEP}, in addition to verification, a supervisor should to approve the registration; meanwhile the new user becomes {@link UserBean#isEnabled() disabled}, {@link UserBean#getVerified() not verified} and {@link UserBean#getRegistered() not registered} until verification AND approbation is made</li>
      *    </ul>
      * </li>
      * <li>The user is enabled or disabled</li>
@@ -71,23 +75,34 @@ public interface IRegistrationService {
      * @param preferredChannel The preferred channel to register user and send verification message
      * @param password An optional password provided in case of 
      * @return The result, with {@link UserBean#getId()} informed and disabled depending on registration process configuration
-     * @throws DuplicateKeyException If {@code username} or {@code preferredChannel} exists in register 
+     * @throws DuplicateKeyException If {@code username} or {@code preferredChannel} exists in register
+     * @see #verifyUser(String)
+     * @see #approveUser(String) 
      */
     public RegistrationProcessResultBean registerUser(@NotBlank String username, @NotNull @Validated CommunicationChannel preferredChannel, @Nullable String password);
     /**
-     * Update the associated user of {@code token} to indicate the new state of verified.
+     * Update the associated user of {@code token} to indicate the new state of {@link UserBean#getVerified() verified}.
+     * <p>If value of property named {@value #VERIFICATION_MODE_PROPERTY_NAME} is {@link EVerificationProcess#ONE_STEP}, the verification sets the user {@link UserBean#isEnabled() enabled} and {@link UserBean#getRegistered() registered}.</p>
+     * <p>If value of property named {@value #VERIFICATION_MODE_PROPERTY_NAME} is {@link EVerificationProcess#TWO_STEP} a {@link #approveUser(String) approbation} should be made to enabling the user.</p>
      * @param token The token used to {@link #registerUser(String, CommunicationChannel, String)}
-     * @return true if the user exists and the previous state is "non-verified", false if user exists but the previous state is not "non-verified" and {@link Optional#empty()} if no user exists with the indicated {@code id}
+     * @return true if the user exists and the previous state is "not-verified", false if user exists but the previous state is not "not-verified" and {@link Optional#empty()} if no user exists with the indicated {@link VerificationTokenBean#getIdUser()}
      */
-    public Optional<Boolean> userVerified(@NotBlank String token);
+    public Optional<Boolean> verifyUser(@NotBlank String token);
     /**
      * Update the user to indicate the new state of approved.
      * <p>This is the second step in {@link EVerificationProcess#TWO_STEP} process verification. This step is committed by supervisor user.</p>
-     * <p>Before call to this step, a call to {@link #userVerified(ObjectId)} should to be made by the link with token and called by owner of {@link CommunicationChannel} indicated in {@link #registerUser(String, CommunicationChannel, String)}.</p>
+     * <p>Before call to this step, a call to {@link #verifyUser(ObjectId)} should to be made by the link with token and called by owner of {@link CommunicationChannel} indicated in {@link #registerUser(String, CommunicationChannel, String)}.</p>
      * @param token The token used to {@link #registerUser(String, CommunicationChannel, String)}
-     * @return true if the user exists and the previous state is "verified", false if user exists but the previous state is not "verified" and {@link Optional#empty()} if no user exists with the indicated {@code id}
+     * @return true if the user exists and the previous state is "verified", false if user exists but the previous state is not "verified" or if token is invalid and {@link Optional#empty()} if no user exists with the indicated {@link ApprobationTokenBean#getIdUser()}
      */
-    public Optional<Boolean> userApproved(@NotBlank String token);
+    public Optional<Boolean> approveUser(@NotBlank String token);
+    /**
+     * Assigns the {@code newPassword} to the {@link RecoverPasswordTokenBean#getIdUser() user} on {@code token}.
+     * @param token A valid {@link RecoverPasswordTokenBean recover password token}
+     * @param newPassword The new password to assign to the related user, raw password without encoding, this method will encode it
+     * @return true if the users exists and state is {@code verified} or {@code registered}, false if state of user is {@code created} or if token is not valid {@link RecoverPasswordTokenBean}; {@link Optional#empty()} if no user exists with the indicated {@link RecoverPasswordTokenBean#getIdUser()}
+     */
+    public Optional<Boolean> recoverPassword(@NotBlank String token, @NotBlank String newPassword);
     /**
      * Find the user by the indicated {@code username}.
      * @param username The username
@@ -102,10 +117,10 @@ public interface IRegistrationService {
     public Optional<UserBean> getUserById(@NotBlank String id);
     /**
      * Find the user by the indicated {@code registrationToken}.
-     * @param registrationToken The registration token, given with {@link IVerificationProcessService#generateVerificationToken(UserBean)}
-     * @return The user, if found, or {@link Optional#empty()} if not found
+     * @param token A valid token (derived from {@link AbstractTokenBean})
+     * @return The user, if found, or {@link Optional#empty()} if not found or if token is not valid
      */
-    public Optional<UserBean> getUserByToken(@NotBlank String registrationToken);
+    public Optional<UserBean> getUserByToken(@NotBlank String token);
     /**
      * Update the specified {@code user}.
      * A few properties can't be updated:
@@ -114,14 +129,14 @@ public interface IRegistrationService {
      * <li>{@link UserBean#getVerified()} the verified timestamp</li>
      * <li>{@link UserBean#getRegistered()} the registered timestamp</li>
      * </ul>
+     * <p>The indicated {@link UserBean#getPassword() password} on {@code user} should to be NON-ENCRYPTED raw password, so this method encoded them.</p>
      * @param user The user
      * @return true if the user was updated and false if no differences are between indicated {@code user} and persisted user
+     * @throws ValidationException If {@link UserBean#getId()} is blank or null
      * @throws DataRetrievalFailureException If no user was found associated with the indicated {@link UserBean#getId() user id} 
      * @throws IllegalStateException If the {@code user} has not been registered 
      * @throws IllegalArgumentException If the indicated {@code user} contains information that cannot be updated
-     * @throws DuplicateKeyException If the updated {@link UserBean#getUsername()}, {@link UserBean#getPreferredChannel()} or {@link UserBean#getSecondaryChannel()} exists for other user
+     * @throws DataIntegrityViolationException If the updated {@link UserBean#getUsername()}, {@link UserBean#getPreferredChannel()} or {@link UserBean#getSecondaryChannel()} exists for other user
      */
     public boolean updateUser(@NotNull @Valid UserBean user);
-    
-    public String recoverPassword(@NotNull @Valid UserBean user);
 }

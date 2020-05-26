@@ -14,9 +14,10 @@
  *
  * Copyright (C) 2020 Octavi Fornés
  */
-package cat.albirar.users.test.sql.testcontainer;
+package cat.albirar.users.test.sql;
 
 import java.util.Optional;
+import java.util.concurrent.Semaphore;
 
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -28,7 +29,6 @@ import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import cat.albirar.users.repos.sql.config.PropertiesSql;
-import cat.albirar.users.test.sql.UsersRegisterSqlTestConfig;
 
 /**
  * The extension to start a sql database container.
@@ -40,8 +40,8 @@ public class SqlTestContainterExtension implements BeforeAllCallback, AfterAllCa
     private static final Logger LOGGER = LoggerFactory.getLogger(SqlTestContainterExtension.class);
 
     @SuppressWarnings("rawtypes")
-    private static JdbcDatabaseContainer container;
-
+    private static JdbcDatabaseContainer container = null;
+    private Semaphore semaphore = new Semaphore(1, true);
     /**
      * {@inheritDoc}
      */
@@ -49,48 +49,62 @@ public class SqlTestContainterExtension implements BeforeAllCallback, AfterAllCa
     public void beforeAll(ExtensionContext context) throws Exception {
         Optional<String> conf;
         
-        conf = context.getConfigurationParameter(UsersRegisterSqlTestConfig.SQL_TEST_DBTYPE);
-        
-        if(conf.orElseGet(()-> "mysql").equals("mysql")) {
-            LOGGER.debug("Start SQL test containers albirar extension for MYSQL...");
-            if(container == null) {
-                container = new MySQLContainer<>();
-            } else {
-                if(container.isRunning()) {
-                    container.stop();
-                }
-            }
-        }
-        else {
-            LOGGER.debug("Start SQL test containers albirar extension for POSTGRESQL...");
-            if(container == null) {
-                container = new PostgreSQLContainer<>();
-            } else {
-                if(container.isRunning()) {
-                    container.stop();
-                }
-            }
-        }
+        try {
+            semaphore.acquire();
 
-        container.start();
+            conf = context.getConfigurationParameter(UsersRegisterSqlTestConfig.SQL_TEST_DBTYPE);
+        
+            if(conf.orElseGet(()-> "postgresql").equals("mysql")) {
+                LOGGER.info("Start SQL test containers albirar extension for MYSQL...");
+                if(container == null) {
+                    container = new MySQLContainer<>();
+                } else {
+                    if(container.isRunning()) {
+                        container.stop();
+                    }
+                }
+            }
+            else {
+                LOGGER.info("Start SQL test containers albirar extension for POSTGRESQL...");
+                if(container == null) {
+                    container = new PostgreSQLContainer<>();
+                } else {
+                    if(container.isRunning()) {
+                        container.stop();
+                    }
+                }
+            }
+
+            container.start();
+        } finally {
+            semaphore.release();
+        }
 
         System.setProperty(PropertiesSql.SQL_DATASOURCE_DRIVER, container.getDriverClassName());
         System.setProperty(PropertiesSql.SQL_DATASOURCE_URL, container.getJdbcUrl());
         System.setProperty(PropertiesSql.SQL_DATASOURCE_USERNAME, container.getUsername());
         System.setProperty(PropertiesSql.SQL_DATASOURCE_PASSWORD, container.getPassword());
-        LOGGER.debug("SQL testcontainer albirar extension STARTED!");
+        LOGGER.info("SQL testcontainer albirar extension STARTED!");
     }
     /**
      * {@inheritDoc}
      */
     @Override
     public void afterAll(ExtensionContext context) throws Exception {
-        LOGGER.debug("End SQL testcontainers albirar extension...");
-        if(container != null && container.isRunning()) {
-            LOGGER.debug("Stopping SQL testcontainers albirar extension...");
-            container.stop();
-            LOGGER.debug("SQL testcontainers albirar extension stopped");
-            container = null;
+        LOGGER.info("End SQL testcontainers albirar extension...");
+        try {
+            semaphore.acquire();
+            if(container != null && container.isRunning()) {
+                LOGGER.info("Stopping SQL testcontainers albirar extension...");
+                try {
+                    container.stop();
+                    LOGGER.info("SQL testcontainers albirar extension stopped");
+                } finally {
+                    container = null;
+                }
+            }
+        } finally {
+            semaphore.release();
         }
     }
 }

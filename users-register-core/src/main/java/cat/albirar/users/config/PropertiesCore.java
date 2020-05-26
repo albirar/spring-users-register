@@ -25,7 +25,7 @@ import cat.albirar.users.verification.EVerificationProcess;
  * @author Octavi Forn&eacute;s &lt;<a href="mailto:ofornes@albirar.cat">ofornes@albirar.cat</a>&gt;
  * @since 1.0.0
  */
-public abstract class PropertiesCore {
+public interface PropertiesCore {
     /**
      * The root for all users-register properties.
      */

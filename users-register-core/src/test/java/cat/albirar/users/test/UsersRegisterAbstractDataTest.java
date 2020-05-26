@@ -66,10 +66,14 @@ public abstract class UsersRegisterAbstractDataTest {
     };
     
     public static final String [] PASSWORDS = {"user1pwd"
+            , "user2pwd!"
+            , "[7v,;Cb?kM66nqP("
     };
     
     public static final String [] ENCRYPTED_PASSWORDS = {
             "$2y$12$focnwI3Z4HFEgAMB.bZuQe8y3N3JhtoUv0L8qg/L6yljQr.ydrkJu"
+            , "$2y$12$C2K1FivCtjTxvcxsrp5RLeD42oym8NZYAP2PbIO968ivTl7tL2wBa"
+            , "$2y$12$l6EotzO1duo2FPy7s8KF5.vzvdbl6wwlroJ0xX1Eo/.2/0Mq16y7a"
     };
 //    , "$2y$12$YziFtZGfhbR7XPOHgxL0h.5yQuG/aQZ7O/xM3WfqYt8RrH2O2mwvm"
     
@@ -94,14 +98,14 @@ public abstract class UsersRegisterAbstractDataTest {
             ;
     public static final UserBean SAMPLE_NEW_USER_CREATED = SAMPLE_NEW_USER.toBuilder()
             .id(DUMMY_ID)
-            .created(LocalDateTime.now())
+            .created(LocalDateTime.now().withNano(0))
             .build()
             ;
     public static final UserBean SAMPLE_CREATED_USER = UserBean.builder()
             .id("000000000000000000000006")
             .username("createdUser")
             .password(ENCRYPTED_PASSWORDS[0])
-            .created(LocalDateTime.now().minusDays(5))
+            .created(LocalDateTime.now().minusDays(5).withNano(0))
             .enabled(false)
             .expire(LocalDate.of(2032, 1, 1))
             .preferredChannel(CHANNELS[1])
@@ -114,11 +118,11 @@ public abstract class UsersRegisterAbstractDataTest {
             .id("000000000000000000000007")
             .username("verifiedUser")
             .password(ENCRYPTED_PASSWORDS[0])
-            .created(LocalDateTime.now().minusDays(5))
+            .created(LocalDateTime.now().minusDays(5).withNano(0))
             .expire(LocalDate.of(2032, 1, 1))
-            .verified(LocalDateTime.now().minusDays(4))
+            .verified(LocalDateTime.now().minusDays(4).withNano(0))
             .enabled(false)
-            .preferredChannel(CHANNELS[2])
+            .preferredChannel(CHANNELS[4])
             .authorities(Arrays.asList(AuthorizationBean.builder()
                     .authority("AccountAdministrator")
                     .build()
@@ -131,13 +135,13 @@ public abstract class UsersRegisterAbstractDataTest {
             .id("000000000000000000000008")
             .username("registeredUser")
             .password(ENCRYPTED_PASSWORDS[0])
-            .created(LocalDateTime.now().minusDays(5))
-            .verified(LocalDateTime.now().minusDays(4))
-            .registered(LocalDateTime.now().minusDays(3))
+            .created(LocalDateTime.now().minusDays(5).withNano(0))
+            .verified(LocalDateTime.now().minusDays(4).withNano(0))
+            .registered(LocalDateTime.now().minusDays(3).withNano(0))
             .expire(LocalDate.of(2032, 1, 1))
             .enabled(true)
-            .preferredChannel(CHANNELS[3])
-            .secondaryChannel(CHANNELS[4])
+            .preferredChannel(CHANNELS[2])
+            .secondaryChannel(CHANNELS[3])
             .authorities(Arrays.asList(AuthorizationBean.builder()
                     .authority("AccountAdministrator")
                     .build()
@@ -150,12 +154,12 @@ public abstract class UsersRegisterAbstractDataTest {
             .id("000000000000000000000009")
             .username("noAuthUser")
             .password(ENCRYPTED_PASSWORDS[0])
-            .created(LocalDateTime.now().minusDays(5))
-            .verified(LocalDateTime.now().minusDays(4))
-            .registered(LocalDateTime.now().minusDays(3))
+            .created(LocalDateTime.now().minusDays(5).withNano(0))
+            .verified(LocalDateTime.now().minusDays(4).withNano(0))
+            .registered(LocalDateTime.now().minusDays(3).withNano(0))
             .expire(LocalDate.of(2032, 1, 1))
             .enabled(true)
-            .preferredChannel(CHANNELS[4])
+            .preferredChannel(CHANNELS[5])
             .build()
             ;
     

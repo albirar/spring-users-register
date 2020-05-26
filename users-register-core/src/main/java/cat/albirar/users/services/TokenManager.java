@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import javax.crypto.SecretKey;
+import javax.validation.constraints.NotBlank;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,7 +36,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
+import cat.albirar.users.models.communications.ECommunicationChannelType;
 import cat.albirar.users.models.tokens.AbstractTokenBean;
+import cat.albirar.users.models.tokens.AbstractTokenBean.AbstractTokenBeanBuilder;
 import cat.albirar.users.models.tokens.ApprobationTokenBean;
 import cat.albirar.users.models.tokens.ETokenClass;
 import cat.albirar.users.models.tokens.RecoverPasswordTokenBean;
@@ -75,19 +78,19 @@ public class TokenManager implements ITokenManager {
      * {@inheritDoc}
      */
     @Override
-    public <T extends AbstractTokenBean> Optional<T> decodeToken(String token) {
+    public <T extends AbstractTokenBean> Optional<T> decodeToken(Class<T> tokenClass, String token) {
         T tkBean;
         Claims body;
 
         try {
             body = decodeClaims(token);
             if(isValidClaims(body)) {
-                tkBean = claimsToBean(body);
+                tkBean = claimsToBean(tokenClass, body);
                 return Optional.of(tkBean);
             }
         }
         catch(ClassCastException | ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException | IllegalArgumentException e) {
-            // Nothing to do
+            // Nothing to do, an empty is returned
         }
         return Optional.empty();
     }
@@ -95,25 +98,16 @@ public class TokenManager implements ITokenManager {
      * {@inheritDoc}
      */
     @Override
-    public Optional<AbstractTokenBean> decodeTokenEvenExpired(String token) {
-        VerificationTokenBean tkBean;
+    public Optional<String> decodeUserId(@NotBlank String token) {
         Claims body;
 
-        body = null;
         try {
-            try {
-                body = decodeClaims(token);
-            } catch(ExpiredJwtException e) {
-                body = e.getClaims();
-            }
-            if(isValidClaims(body)) {
-                tkBean = claimsToBean(body);
-                return Optional.of(tkBean);
-            }
-        } catch(UnsupportedJwtException | MalformedJwtException | SignatureException | IllegalArgumentException e) {
-            // Nothing to do
+            body = decodeClaims(token);
+            return Optional.ofNullable(body.get(CLAIM_USERID, String.class));
         }
-        
+        catch(ClassCastException | ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException | IllegalArgumentException e) {
+            // Nothing to do, an empty is returned
+        }
         return Optional.empty();
     }
     /**
@@ -124,28 +118,29 @@ public class TokenManager implements ITokenManager {
         JwtBuilder jBuilder;
         String jws;
         
-        jBuilder = Jwts.builder()
-                .setId(tokenBean.getTokenId())
-                .setIssuer(issuer)
-                .setSubject(tokenBean.getUsername())
-                .setIssuedAt(Date.from(tokenBean.getIssued().atZone(ZoneId.systemDefault()).toInstant()))
-                .setExpiration(Date.from(tokenBean.getExpire().atZone(ZoneId.systemDefault()).toInstant()))
-                .claim(CLAIM_USERID, tokenBean.getIdUser())
-                .claim(CLAIM_TOKEN_CLASS, tokenBean.getTokenClass().name())
-                ;
-        
-        switch(tokenBean.getTokenClass()) {
-            case VERIFICATION:
-                jBuilder = encodeVerificationInformation(jBuilder, (VerificationTokenBean)tokenBean);
-                break;
-            case APPROBATION:
-                jBuilder = encodeApprobationInformation(jBuilder, (ApprobationTokenBean)tokenBean);
-                break;
-            case RECOVER_PASSWORD:
-            default:
-                jBuilder = encodeRecoverPasswordInformation(jBuilder, (RecoverPasswordTokenBean)tokenBean);
-                break;
+        if(tokenBean.getTokenClass() != null) {
+            jBuilder = Jwts.builder()
+                    .setId(tokenBean.getTokenId())
+                    .setIssuer(issuer)
+                    .setSubject(tokenBean.getUsername())
+                    .setIssuedAt(Date.from(tokenBean.getIssued().atZone(ZoneId.systemDefault()).toInstant()))
+                    .setExpiration(Date.from(tokenBean.getExpire().atZone(ZoneId.systemDefault()).toInstant()))
+                    .claim(CLAIM_USERID, tokenBean.getIdUser())
+                    .claim(CLAIM_TOKEN_CLASS, tokenBean.getTokenClass().name())
+                    ;
+                if(tokenBean.getTokenClass() == ETokenClass.VERIFICATION) {
+                    jBuilder = encodeVerificationInformation(jBuilder, (VerificationTokenBean)tokenBean);
+                }
+                if(tokenBean.getTokenClass() == ETokenClass.APPROBATION) {
+                    jBuilder = encodeApprobationInformation(jBuilder, (ApprobationTokenBean)tokenBean);
+                }
+                if(tokenBean.getTokenClass() == ETokenClass.RECOVER_PASSWORD) {
+                    jBuilder = encodeRecoverPasswordInformation(jBuilder, (RecoverPasswordTokenBean)tokenBean);
+                }
+        } else {
+            throw new IllegalArgumentException(String.format("The %s class is not recognized as acceptable token bean", tokenBean.getClass().getCanonicalName()));
         }
+        
         jws = jBuilder
                 .signWith(jwsSecretKey)
                 .compact();
@@ -174,19 +169,10 @@ public class TokenManager implements ITokenManager {
      */
     @Override
     public Optional<VerificationTokenBean> generateVerificationTokenBean(UserBean user, EVerificationProcess process) {
-        LocalDateTime ldt;
-        
         if(process == EVerificationProcess.NONE) {
             return Optional.empty();
         }
-        ldt = LocalDateTime.now();
-        
-        return Optional.of(VerificationTokenBean.builder()
-                .tokenId(UUID.randomUUID().toString())
-                .issued(ldt)
-                .expire(ldt.plusDays(daysToExpire))
-                .idUser(user.getId())
-                .username(user.getUsername())
+        return Optional.of(buildAbstractToken(VerificationTokenBean.builder(), user)
                 .process(process)
                 .build())
                 ;
@@ -195,25 +181,84 @@ public class TokenManager implements ITokenManager {
      * {@inheritDoc}
      */
     @Override
-    public ApprobationTokenBean generateApprobationTokenBean(UserBean user, UserBean approver) {
-        // TODO Auto-generated method stub
-        return null;
+    public Optional<ApprobationTokenBean> generateApprobationTokenBean(UserBean user, UserBean approver) {
+        if(StringUtils.hasText(user.getId())
+                && StringUtils.hasText(approver.getId())) {
+            return Optional.of(buildAbstractToken(ApprobationTokenBean.builder(), user)
+                    .approverId(approver.getId())
+                    .approverUsername(approver.getUsername())
+                    .build()
+                    )
+                    ;
+        }
+        return Optional.empty();
     }
     /**
      * {@inheritDoc}
      */
     @Override
-    public RecoverPasswordTokenBean generateRecoverPasswordTokenBean(UserBean user, boolean preferredChannel) {
-        // TODO Auto-generated method stub
-        return null;
+    public Optional<RecoverPasswordTokenBean> generateRecoverPasswordTokenBean(UserBean user, boolean preferredChannel) {
+        ECommunicationChannelType t;
+        if(StringUtils.hasText(user.getId())) {
+            if(preferredChannel || user.getSecondaryChannel() == null) {
+                t = user.getPreferredChannel().getChannelType();
+            } else {
+                t = user.getSecondaryChannel().getChannelType();
+            }
+            return Optional.of(buildAbstractToken(RecoverPasswordTokenBean.builder(), user)
+                    .origin(t)
+                    .build()
+                    )
+                    ;
+        }
+        return Optional.empty();
+    }
+    /**
+     * Build the abstract part of any token.
+     * @param <T> The token builder type
+     * @param tokenBeanBuilder The token builder instance to populate 
+     * @param user The user associated with token
+     * @return The populated same {@code tokenBeanBuilder}
+     */
+    private <T extends AbstractTokenBeanBuilder<?,?>> T buildAbstractToken(T tokenBeanBuilder, UserBean user) {
+        LocalDateTime ldt;
+        
+        ldt = LocalDateTime.now();
+        tokenBeanBuilder
+            .tokenId(UUID.randomUUID().toString())
+            .issued(ldt)
+            .expire(ldt.plusDays(daysToExpire))
+            .idUser(user.getId())
+            .username(user.getUsername())
+            ;
+        return tokenBeanBuilder;
+    }
+    /**
+     * Return the {@link ETokenClass} value of the {@link ITokenManager#CLAIM_TOKEN_CLASS} claim of {@code body}.
+     * @param body The body
+     * @return The value of claim or {@link Optional#empty()} if the content of the claim is not one of {@link ETokenClass} elements 
+     */
+    private Optional<ETokenClass> decodeTokenClass(Claims body) {
+        try {
+            return Optional.of(ETokenClass.valueOf(body.get(CLAIM_TOKEN_CLASS, String.class)));
+        } catch (NullPointerException | IllegalArgumentException e) {
+            return Optional.empty();
+        }
     }
     /**
      * {@inheritDoc}
      */
     @Override
-    public Optional<ETokenClass> getTokenClass( String token) {
-        // TODO Auto-generated method stub
-        return null;
+    public boolean isTokenClass(String token, ETokenClass tokenClass) {
+        Optional<ETokenClass> otk;
+        
+        try {
+            otk = decodeTokenClass(decodeClaims(token));
+            return (otk.isPresent() && otk.get() == tokenClass);
+        } catch (Exception e) {
+            // Error, return false
+            return false;
+        }
     }
     /**
      * {@inheritDoc}
@@ -230,35 +275,50 @@ public class TokenManager implements ITokenManager {
         }
         return false;
     }
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isTokenValidNotCheckExpired(String token) {
-        Claims body;
-        
-        try {
-            body = decodeClaims(token);
-            return isValidClaims(body);
-        } catch (ExpiredJwtException  e) {
-            // Even if expired!
-            return isValidClaims(e.getClaims());
-        } catch(UnsupportedJwtException | MalformedJwtException | SignatureException | IllegalArgumentException e) {
-            // Nothing to do
-        }
-        return false;
-    }
     @SuppressWarnings("unchecked")
-    private <T extends AbstractTokenBean> T claimsToBean(Claims body) {
-        return (T) VerificationTokenBean.builder()
-                .tokenId(body.getId())
-                .expire(LocalDateTime.from(body.getExpiration().toInstant().atZone(ZoneId.systemDefault())))
-                .issued(LocalDateTime.from(body.getIssuedAt().toInstant().atZone(ZoneId.systemDefault())))
-                .process(EVerificationProcess.valueOf(body.getAudience()))
-                .idUser(body.get(CLAIM_USERID, String.class))
-                .username(body.getSubject())
-                .build()
-                ;
+    private <T extends AbstractTokenBean> T claimsToBean(Class<T> tokenClass, Claims body) {
+        ETokenClass tks;
+        
+        tks = decodeTokenClass(body).get();
+        if(tks == ETokenClass.VERIFICATION && tokenClass.equals(VerificationTokenBean.class)) {
+            return (T) buildAbstractBean(VerificationTokenBean.builder(), body)
+                    .process(EVerificationProcess.valueOf(body.getAudience()))
+                    .build()
+                    ;
+        }
+        if(tks == ETokenClass.APPROBATION && tokenClass.equals(ApprobationTokenBean.class)) {
+            return (T) buildAbstractBean(ApprobationTokenBean.builder(), body)
+                    .approverId(body.get(CLAIM_APPROVER_ID, String.class))
+                    .approverUsername(body.get(CLAIM_APPROVER_USERNAME, String.class))
+                    .build()
+                    ;
+        }
+        if(tks == ETokenClass.RECOVER_PASSWORD && tokenClass.equals(RecoverPasswordTokenBean.class)) {
+            return (T) buildAbstractBean(RecoverPasswordTokenBean.builder(), body)
+                    .origin(ECommunicationChannelType.valueOf(body.get(CLAIM_ORIGIN_CHANNEL, String.class)))
+                    .build()
+                    ;
+        }
+        // Others elements not recognized here...
+        throw new IllegalArgumentException("Not a recognized token class!");
+    }
+
+    /**
+     * Build the abstract part of any token.
+     * @param <T> The token builder type
+     * @param tokenBeanBuilder The token builder instance to populate 
+     * @param user The user associated with token
+     * @return The populated same {@code tokenBeanBuilder}
+     */
+    private <T extends AbstractTokenBeanBuilder<?,?>> T buildAbstractBean(T tokenBeanBuilder, Claims body) {
+        tokenBeanBuilder
+            .tokenId(body.getId())
+            .issued(LocalDateTime.from(body.getIssuedAt().toInstant().atZone(ZoneId.systemDefault())))
+            .expire(LocalDateTime.from(body.getExpiration().toInstant().atZone(ZoneId.systemDefault())))
+            .idUser(body.get(CLAIM_USERID, String.class))
+            .username(body.getSubject())
+            ;
+        return tokenBeanBuilder;
     }
     /**
      * Verify if {@code body} is valid for decode into {@link VerificationTokenBean}, included checking dates.
@@ -266,27 +326,71 @@ public class TokenManager implements ITokenManager {
      * <ul>
      * <li>{@link Claims#getId()} is not-blank</li>
      * <li>{@link Claims#getIssuer()} is not-blank and is equal to value of property named {@value #PROP_ISSUER}</li>
-     * <li>{@link Claims#getSubject()} is not-blank</li>
-     * <li>{@link Claims#getAudience()} is not-blank</li>
      * <li>{@link Claims#getIssuedAt()} is not-null and is before now</li>
      * <li>{@link Claims#getExpiration()} is not-null</li>
-     * <li>{@code body} {@link Claims#containsKey(Object) contains} a claim named {@value #CLAIM_USERID} and his content is not-blank</li>
+     * <li>{@link Claims#getSubject()} is not-blank</li>
+     * <li>{@code body} {@link Claims#containsKey(Object) contains} a claim named {@value ITokenManager#CLAIM_USERID} and his content is not-blank</li>
+     * <li>{@code body} {@link Claims#containsKey(Object) contains} a claim named {@value ITokenManager#CLAIM_TOKEN_CLASS} and his content is not-blank and is equal to one of {@link ETokenClass} element {@link Enum#name() name}</li>
+     * </ul>
+     * Depending on value of {@link Claims#get(String, Class) claim} named {@value ITokenManager#CLAIM_TOKEN_CLASS}, make further checks:
+     * <ul>
+     * <li>If value is {@link ETokenClass#VERIFICATION}:
+     *    <ul>
+     *       <li>{@code body} {@link Claims#getAudience()} is not-blank and is one of {@link EVerificationProcess#ONE_STEP} or {@link EVerificationProcess#TWO_STEP}</li>
+     *    </ul>
+     * <li>
+     * <li>If value is {@link ETokenClass#APPROBATION}:
+     *    <ul>
+     *       <li>{@code body} {@link Claims#containsKey(Object) contains} a claim named {@value ITokenManager#CLAIM_APPROVER_ID} and his content is not-blank</li>
+     *       <li>{@code body} {@link Claims#containsKey(Object) contains} a claim named {@value ITokenManager#CLAIM_APPROVER_USERNAME} and his content is not-blank</li>
+     *    </ul>
+     * <li>
+     * <li>If value is {@link ETokenClass#RECOVER_PASSWORD}:
+     *    <ul>
+     *       <li>{@code body} {@link Claims#containsKey(Object) contains} a claim named {@value ITokenManager#CLAIM_ORIGIN_CHANNEL} and his content is not-blank and is one of {@link ECommunicationChannelType} element {@link Enum#name() name}</li>
+     *    </ul>
+     * <li>
      * </ul>
      * @param body The claims
      * @return true if valid and false if not
      */
     private boolean isValidClaims(Claims body) {
-        return (StringUtils.hasText(body.getId())
+        Optional<ETokenClass> tkcls;
+        
+        if (StringUtils.hasText(body.getId())
                 && StringUtils.hasText(body.getIssuer())
                 && body.getIssuer().equals(issuer)
-                && StringUtils.hasText(body.getSubject())
-                && StringUtils.hasText(body.getAudience())
                 && body.getIssuedAt() != null
                 && body.getIssuedAt().before(new Date())
                 && body.getExpiration() != null
-                && body.containsKey(CLAIM_USERID)
+                && StringUtils.hasText(body.getSubject())
                 && StringUtils.hasText(body.get(CLAIM_USERID, String.class))
-                );
+                && StringUtils.hasText(body.get(CLAIM_TOKEN_CLASS, String.class)) ) {
+            
+            tkcls = decodeTokenClass(body);
+            
+            if(tkcls.isPresent()) {
+                if(tkcls.get() == ETokenClass.VERIFICATION) {
+                    return (StringUtils.hasText(body.getAudience())
+                            && (body.getAudience().equals(EVerificationProcess.ONE_STEP.name())
+                                    || body.getAudience().equals(EVerificationProcess.TWO_STEP.name()))
+                            );
+                }
+                
+                if(tkcls.get() == ETokenClass.APPROBATION) {
+                    return (body.containsKey(CLAIM_APPROVER_ID)
+                            && StringUtils.hasText(body.get(CLAIM_APPROVER_ID, String.class))
+                            && body.containsKey(CLAIM_APPROVER_USERNAME)
+                            && StringUtils.hasText(body.get(CLAIM_APPROVER_USERNAME, String.class))
+                            );
+                }
+                return (body.containsKey(CLAIM_ORIGIN_CHANNEL)
+                    && StringUtils.hasText(body.get(CLAIM_ORIGIN_CHANNEL, String.class))
+                    && (body.get(CLAIM_ORIGIN_CHANNEL, String.class).equals(ECommunicationChannelType.EMAIL.name())
+                            || body.get(CLAIM_ORIGIN_CHANNEL, String.class).equals(ECommunicationChannelType.MOBILE.name())) );
+            }
+        }
+        return false;
     }
     /**
      * Decode the indicated {@code token} into {@link Claims} to operate.

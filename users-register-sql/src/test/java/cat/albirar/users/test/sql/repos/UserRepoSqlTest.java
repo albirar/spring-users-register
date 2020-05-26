@@ -18,27 +18,17 @@
  */
 package cat.albirar.users.test.sql.repos;
 
-import java.sql.Timestamp;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 
-import cat.albirar.users.models.auth.AuthorizationBean;
-import cat.albirar.users.models.users.UserBean;
-import cat.albirar.users.repos.sql.config.PropertiesSql;
-import cat.albirar.users.repos.sql.mappings.AuthorizationRowMapper;
-import cat.albirar.users.repos.sql.mappings.UserRowMapper;
-import cat.albirar.users.test.UsersRegisterAbstractDataTest;
 import cat.albirar.users.test.repos.UserRepoTest;
+import cat.albirar.users.test.sql.SqlTestContainterExtension;
+import cat.albirar.users.test.sql.SqlTestUtils;
 import cat.albirar.users.test.sql.UsersRegisterSqlTestConfig;
-import cat.albirar.users.test.sql.testcontainer.SqlTestContainterExtension;
 
 /**
  * The SQL backed {@link UserRepoTest}.
@@ -49,63 +39,17 @@ import cat.albirar.users.test.sql.testcontainer.SqlTestContainterExtension;
 @ExtendWith(SqlTestContainterExtension.class)
 @Sql(scripts = {"/schema.sql"})
 public class UserRepoSqlTest extends UserRepoTest {
-    @Autowired
-    protected NamedParameterJdbcTemplate namedJdbcTemplate;
-    @Autowired
-    protected UserRowMapper userRowMapper;
     
     @Autowired
-    private Environment env;
+    private SqlTestUtils sqlTestUtils;
     
     @BeforeEach
     public void setupTestData() {
-        MapSqlParameterSource parm;
-        String insertUser, insertAuth;
-    
-        namedJdbcTemplate.getJdbcTemplate().update("DELETE FROM " + UserRowMapper.TABLENAME());
-        namedJdbcTemplate.getJdbcTemplate().update("DELETE FROM " + AuthorizationRowMapper.TABLENAME_AUTHORITIES());
-        
-        insertUser = "INSERT INTO "
-                + UserRowMapper.TABLENAME()
-                + " ("
-                + UserRowMapper.COL_ID
-                + ", " + String.join(",", UserRowMapper.NON_KEY_COLUMNS)
-                + " ) VALUES ("
-                + ":" + UserRowMapper.COL_ID
-                + ", :" + String.join(",:", UserRowMapper.NON_KEY_COLUMNS)
-                + ")"
-                ;
-        insertAuth = "INSERT INTO "
-                + AuthorizationRowMapper.TABLENAME_AUTHORITIES()
-                + " ("
-                + AuthorizationRowMapper.COL_ID_USER_AUTH
-                + ", " + AuthorizationRowMapper.COL_AUTHORITY
-                + ") VALUES ("
-                + ":" + AuthorizationRowMapper.COL_ID_USER_AUTH
-                + ", :" + AuthorizationRowMapper.COL_AUTHORITY
-                + ")"
-                ;
-        for(UserBean u : UsersRegisterAbstractDataTest.USERS) {
-            parm = userRowMapper.mapValuesForCreation(u.toBuilder().password(PASSWORDS[0]).build());
-            parm.addValue(UserRowMapper.COL_CREATED, Timestamp.valueOf(u.getCreated()));
-            parm.addValue(UserRowMapper.COL_ID, Long.parseLong(u.getId()));
-            namedJdbcTemplate.update(insertUser, parm);
-            // The authorities
-            parm = new MapSqlParameterSource(AuthorizationRowMapper.COL_ID_USER_AUTH, Long.parseLong(u.getId()));
-            for(AuthorizationBean a : u.getAuthorities()) {
-                parm.addValue(AuthorizationRowMapper.COL_AUTHORITY, a.getAuthority());
-                namedJdbcTemplate.update(insertAuth, parm);
-            }
-        }
-        // Set start of auto-account on postgresql
-        if(env.getProperty(PropertiesSql.SQL_DATASOURCE_URL).contains("postgres")) {
-            namedJdbcTemplate.update(String.format("ALTER SEQUENCE %s_id_seq RESTART WITH 10000", UserRowMapper.TABLENAME()), new MapSqlParameterSource());
-        }
+        sqlTestUtils.setupData();
     }
     
     @AfterEach
     public void teardownData() {
-        namedJdbcTemplate.getJdbcTemplate().update("DELETE FROM " + UserRowMapper.TABLENAME());
-        namedJdbcTemplate.getJdbcTemplate().update("DELETE FROM " + AuthorizationRowMapper.TABLENAME_AUTHORITIES());
+        sqlTestUtils.teardownData();
     }
 }

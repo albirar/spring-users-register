@@ -16,27 +16,29 @@
  *
  * Copyright (C) 2020 Octavi Fornés
  */
-package cat.albirar.users.test.mocks.repos;
+package cat.albirar.users.test.mock.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import cat.albirar.users.repos.IUserRepo;
 import cat.albirar.users.test.mock.MockUtils;
-import cat.albirar.users.test.repos.UserRepoTest;
+import cat.albirar.users.test.services.SpringSecurityUserServiceTest;
 
 /**
- * The mock backed test {@link UserRepoTest}.
+ * The mock backed for {@link SpringSecurityUserServiceTest}.
  * @author Octavi Forn&eacute;s &lt;<a href="mailto:ofornes@albirar.cat">ofornes@albirar.cat</a>&gt;
  * @since 1.0.0
  */
-public class UserRepoMockTest extends UserRepoTest {
+@DirtiesContext
+public class SpringSecurityUserServiceMockTest extends SpringSecurityUserServiceTest {
+
     @Autowired
     private IUserRepo userRepo;
     
     @BeforeEach
-    public void setupTest() {
+    public void setupTests() {
         MockUtils.instance().setupRegisteredUsers(userRepo);
     }
-
 }

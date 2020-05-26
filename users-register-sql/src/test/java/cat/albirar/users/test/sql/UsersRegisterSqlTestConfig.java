@@ -16,6 +16,7 @@
  */
 package cat.albirar.users.test.sql;
 
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -25,13 +26,14 @@ import cat.albirar.users.repos.sql.config.UsersRegisterSqlConfiguration;
 import cat.albirar.users.test.context.DefaultContextTestConfiguration;
 
 /**
- * Configuration for sql test with Postgresql.
+ * Configuration for sql test with Postgresql or MySql.
  * 
  * @author Octavi Forn&eacute;s &lt;<a href="mailto:ofornes@albirar.cat">ofornes@albirar.cat</a>&gt;
  * @since 1.0.0
  */
 @Configuration
 @Import({UsersRegisterSqlConfiguration.class, DefaultContextTestConfiguration.class, UsersRegisterConfiguration.class})
+@ComponentScan(basePackageClasses = SqlTestUtils.class)
 public class UsersRegisterSqlTestConfig {
     public static final String SQL_TEST_DBTYPE = PropertiesSql.ROOT_SQL + ".test.databaseType";
 }

@@ -16,7 +16,7 @@
 	<dependencies>
 		<!-- Core library -->
 		<dependency>
-			<groupId>cat.albirar.app</groupId>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>spring-users-register-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -44,9 +44,9 @@
 
 		<!-- TEST -->
 		<dependency>
-			<groupId>${project.parent.groupId}</groupId>
-			<artifactId>users-register-core</artifactId>
-			<version>${project.parent.version}</version>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>spring-users-register-core</artifactId>
+			<version>${project.version}</version>
 			<classifier>tests</classifier>
 			<type>test-jar</type>
 			<scope>test</scope>

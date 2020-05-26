@@ -16,27 +16,27 @@
  *
  * Copyright (C) 2020 Octavi Fornés
  */
-package cat.albirar.users.test.mocks.repos;
+package cat.albirar.users.test.mock.repos;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import cat.albirar.users.repos.IAccountRepo;
+import cat.albirar.users.repos.IUserRepo;
 import cat.albirar.users.test.mock.MockUtils;
-import cat.albirar.users.test.repos.AccountRepoTest;
+import cat.albirar.users.test.repos.UserRepoTest;
 
 /**
- * The mock backed test {@link AccountRepoTest}.
+ * The mock backed test {@link UserRepoTest}.
  * @author Octavi Forn&eacute;s &lt;<a href="mailto:ofornes@albirar.cat">ofornes@albirar.cat</a>&gt;
  * @since 1.0.0
  */
-public class AccountRepoMockTest extends AccountRepoTest {
+public class UserRepoMockTest extends UserRepoTest {
     @Autowired
-    private IAccountRepo accountRepo;
+    private IUserRepo userRepo;
     
     @BeforeEach
     public void setupTest() {
-        MockUtils.instance().setupAccounts(accountRepo);
+        MockUtils.instance().setupRegisteredUsers(userRepo);
     }
 
 }
