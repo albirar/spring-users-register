@@ -33,8 +33,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import cat.albirar.communications.models.CommunicationChannelBean;
 import cat.albirar.users.models.account.AccountBean;
-import cat.albirar.users.models.communications.CommunicationChannel;
 import cat.albirar.users.models.users.UserBean;
 import cat.albirar.users.repos.IAccountRepo;
 import cat.albirar.users.repos.IUserRepo;
@@ -75,7 +75,7 @@ public class MockUtils extends UsersRegisterAbstractDataTest {
      *    <ul>
      *       <li>{@link IUserRepo#findById(String)} with {@code user.getId()} return {@link Optional#of(Object) Optional.of(user)}</li>
      *       <li>{@link IUserRepo#existsByUsername(String)} with {@code user.getUsername()} return true</li>
-     *       <li>{@link IUserRepo#existsByPreferredChannel(cat.albirar.users.models.communications.CommunicationChannel)} with {@code user.getPreferredChannel()} return true</li>
+     *       <li>{@link IUserRepo#existsByPreferredChannel(cat.albirar.communications.models.CommunicationChannelBean)} with {@code user.getPreferredChannel()} return true</li>
      *    </ul>
      * </li>
      * </ul>
@@ -112,17 +112,17 @@ public class MockUtils extends UsersRegisterAbstractDataTest {
                 return Stream.of(REAL_USERS).filter(u -> u.getUsername().equals(username)).findFirst();
             }
         });
-        when(userRepo.existsByPreferredChannel(anyObject(CommunicationChannel.class, CHANNELS[0]))).thenAnswer(new Answer<Boolean>() {
+        when(userRepo.existsByPreferredChannel(anyObject(CommunicationChannelBean.class, CHANNELS[0]))).thenAnswer(new Answer<Boolean>() {
             @Override
             public Boolean answer(InvocationOnMock invocation) throws Throwable {
-                CommunicationChannel commChannel = invocation.getArgument(0);
+                CommunicationChannelBean commChannel = invocation.getArgument(0);
                 return Stream.of(REAL_USERS).anyMatch(u -> u.getPreferredChannel().equals(commChannel));
             }
         });
-        when(userRepo.existsBySecondaryChannel(anyObject(CommunicationChannel.class, CHANNELS[0]))).thenAnswer(new Answer<Boolean>() {
+        when(userRepo.existsBySecondaryChannel(anyObject(CommunicationChannelBean.class, CHANNELS[0]))).thenAnswer(new Answer<Boolean>() {
             @Override
             public Boolean answer(InvocationOnMock invocation) throws Throwable {
-                CommunicationChannel commChannel = invocation.getArgument(0);
+                CommunicationChannelBean commChannel = invocation.getArgument(0);
                 return Stream.of(REAL_USERS).anyMatch(u -> ObjectUtils.nullSafeEquals(u.getSecondaryChannel(), commChannel));
             }
         });

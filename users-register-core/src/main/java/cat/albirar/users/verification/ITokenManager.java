@@ -23,7 +23,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-import cat.albirar.users.models.communications.ECommunicationChannelType;
+import cat.albirar.communications.models.ECommunicationChannelType;
 import cat.albirar.users.models.tokens.AbstractTokenBean;
 import cat.albirar.users.models.tokens.ApprobationTokenBean;
 import cat.albirar.users.models.tokens.ETokenClass;

@@ -40,8 +40,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import cat.albirar.users.models.communications.CommunicationChannel;
-import cat.albirar.users.models.communications.ECommunicationChannelType;
+import cat.albirar.communications.models.CommunicationChannelBean;
+import cat.albirar.communications.models.ECommunicationChannelType;
 import cat.albirar.users.models.users.UserBean;
 
 /**
@@ -118,10 +118,10 @@ public class UserRowMapper extends AbstractRowMapper implements IPrefixedColsRow
         return UserBean.builder()
                 .id(mapId(colPrefix, rs, rowNum))
                 .username(rs.getString(prefixCol(colPrefix, COL_USERNAME)))
-                .preferredChannel(CommunicationChannel.builder()
+                .preferredChannel(CommunicationChannelBean.builder()
                         .channelType(ECommunicationChannelType.valueOf(rs.getString(prefixCol(colPrefix, COL_PREFERREDCHANNEL_TYPE))))
                         .channelId(rs.getString(prefixCol(colPrefix, COL_PREFERREDCHANNEL_VALUE))).build())
-                .secondaryChannel(t == null ? null : CommunicationChannel.builder().channelType(ECommunicationChannelType.valueOf(t)).channelId(v).build())
+                .secondaryChannel(t == null ? null : CommunicationChannelBean.builder().channelType(ECommunicationChannelType.valueOf(t)).channelId(v).build())
                 .password(rs.getString(prefixCol(colPrefix, COL_PASSWORD)))
                 .created(LocalDateTime.ofInstant(rs.getTimestamp(prefixCol(colPrefix, COL_CREATED)).toInstant(), ZoneId.systemDefault()))
                 .verified(tv == null ? null : LocalDateTime.ofInstant(tv.toInstant(), ZoneId.systemDefault()))

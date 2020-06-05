@@ -28,8 +28,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DataRetrievalFailureException;
 
-import cat.albirar.users.models.communications.CommunicationChannel;
-import cat.albirar.users.models.communications.ECommunicationChannelType;
+import cat.albirar.communications.models.CommunicationChannelBean;
+import cat.albirar.communications.models.ECommunicationChannelType;
 import cat.albirar.users.models.tokens.ETokenClass;
 import cat.albirar.users.models.users.UserBean;
 import cat.albirar.users.registration.IRegistrationService;
@@ -146,7 +146,7 @@ public abstract class RegistrationServiceTest extends UsersRegisterTests {
             UserBean usrs  = usr.toBuilder().build();
             Assertions.assertThrows(ValidationException.class, () -> registrationService.updateUser(usrs));
         }
-        usr = usr.toBuilder().preferredChannel(CommunicationChannel.builder().build()).build();
+        usr = usr.toBuilder().preferredChannel(CommunicationChannelBean.builder().build()).build();
         {
             UserBean usrs  = usr.toBuilder().build();
             Assertions.assertThrows(ValidationException.class, () -> registrationService.updateUser(usrs));

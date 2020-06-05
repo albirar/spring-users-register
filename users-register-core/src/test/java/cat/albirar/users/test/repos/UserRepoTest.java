@@ -31,9 +31,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.util.StringUtils;
 
+import cat.albirar.communications.models.CommunicationChannelBean;
 import cat.albirar.users.models.auth.AuthorizationBean;
 import cat.albirar.users.models.auth.ERole;
-import cat.albirar.users.models.communications.CommunicationChannel;
 import cat.albirar.users.models.users.UserBean;
 import cat.albirar.users.repos.IUserRepo;
 import cat.albirar.users.test.UsersRegisterTests;
@@ -123,7 +123,7 @@ public abstract class UserRepoTest extends UsersRegisterTests {
     @Test
     public void testExistsByPreferredChannel() {
         Assertions.assertThrows(ConstraintViolationException.class, () -> userRepo.existsByPreferredChannel(null));
-        Assertions.assertThrows(ConstraintViolationException.class, () -> userRepo.existsByPreferredChannel(CommunicationChannel.builder().build()));
+        Assertions.assertThrows(ConstraintViolationException.class, () -> userRepo.existsByPreferredChannel(CommunicationChannelBean.builder().build()));
         Assertions.assertThrows(ConstraintViolationException.class, () -> userRepo.existsByPreferredChannel(CHANNELS[0].toBuilder().channelType(null).build()));
         Assertions.assertThrows(ConstraintViolationException.class, () -> userRepo.existsByPreferredChannel(CHANNELS[0].toBuilder().channelId(null).build()));
         Assertions.assertThrows(ConstraintViolationException.class, () -> userRepo.existsByPreferredChannel(CHANNELS[0].toBuilder().channelId("").build()));
@@ -136,7 +136,7 @@ public abstract class UserRepoTest extends UsersRegisterTests {
     @Test
     public void testExistsBySecondaryChannel() {
         Assertions.assertThrows(ConstraintViolationException.class, () -> userRepo.existsBySecondaryChannel(null));
-        Assertions.assertThrows(ConstraintViolationException.class, () -> userRepo.existsBySecondaryChannel(CommunicationChannel.builder().build()));
+        Assertions.assertThrows(ConstraintViolationException.class, () -> userRepo.existsBySecondaryChannel(CommunicationChannelBean.builder().build()));
         Assertions.assertThrows(ConstraintViolationException.class, () -> userRepo.existsBySecondaryChannel(CHANNELS[0].toBuilder().channelType(null).build()));
         Assertions.assertThrows(ConstraintViolationException.class, () -> userRepo.existsBySecondaryChannel(CHANNELS[0].toBuilder().channelId(null).build()));
         Assertions.assertThrows(ConstraintViolationException.class, () -> userRepo.existsBySecondaryChannel(CHANNELS[0].toBuilder().channelId("").build()));

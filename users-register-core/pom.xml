@@ -46,8 +46,6 @@
 			<artifactId>spring-tx</artifactId>
 			<version>${spring.version}</version>
 		</dependency>
-
-
 		<!-- TEST -->
 		<dependency>
 			<groupId>org.springframework.security</groupId>

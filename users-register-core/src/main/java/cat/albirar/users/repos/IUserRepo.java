@@ -29,7 +29,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.validation.annotation.Validated;
 
-import cat.albirar.users.models.communications.CommunicationChannel;
+import cat.albirar.communications.models.CommunicationChannelBean;
 import cat.albirar.users.models.users.UserBean;
 
 /**
@@ -78,13 +78,13 @@ public interface IUserRepo {
      * @param preferredChannel The preferred channel sample to search for
      * @return true if exists and false if not
      */
-    public boolean existsByPreferredChannel(@NotNull @Valid CommunicationChannel preferredChannel);
+    public boolean existsByPreferredChannel(@NotNull @Valid CommunicationChannelBean preferredChannel);
     /**
      * Check if a {@link UserBean user} exists with the indicated {@code secondaryChannel}.
      * @param secondaryChannel The secondary channel sample to search for
      * @return true if exists and false if not
      */
-    public boolean existsBySecondaryChannel(@NotNull @Valid CommunicationChannel secondaryChannel);
+    public boolean existsBySecondaryChannel(@NotNull @Valid CommunicationChannelBean secondaryChannel);
     /**
      * Save (create or update) the indicated {@code user}.
      * <p>If {@link UserBean#getId()} is null or empty or blank or is informed but no users exists with this id, then its a <b>creating operation</b></p>

@@ -18,10 +18,13 @@
  */
 package cat.albirar.users.services;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import cat.albirar.users.models.verification.VerificationProcessBean;
+import cat.albirar.users.models.verification.ProcessBean;
 import cat.albirar.users.verification.IVerificationProcessService;
 
 /**
@@ -36,18 +39,35 @@ public class VerificationProcessService implements IVerificationProcessService {
      * {@inheritDoc}
      */
     @Override
-    public long startVerifyProcess(VerificationProcessBean verificationProcess) {
+    public String startVerifyProcess(ProcessBean verificationProcess) {
         // TODO Pending!
         /*
          * Planned to be:
-         * 1. Generate link
+         * 1. Prepare variables
          * 2. Process template with all info
-         * 3. Push a message into the queue with template 
+         * 3. Push a message into communications queue with template processing as body
          * 4. Return the message id
          * 
          * The queue process the message and send the verification request to user through the channel
          * The link point to a 
          */
-        return 0;
+        return null;
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String startApproveProcess(@NotNull @Valid ProcessBean approbationProcess) {
+        // TODO Pending
+        /*
+         * Planned to be:
+         * 1. Prepare variables
+         * 2. Process template with all info
+         * 3. Push a message into communications queue  with template processing as body
+         * 4. Return the message id
+         * 
+         */
+        return null;
     }
 }

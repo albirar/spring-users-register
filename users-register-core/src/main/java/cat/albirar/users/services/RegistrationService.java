@@ -35,15 +35,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import cat.albirar.communications.models.CommunicationChannelBean;
 import cat.albirar.users.models.auth.AuthorizationBean;
 import cat.albirar.users.models.auth.ERole;
-import cat.albirar.users.models.communications.CommunicationChannel;
 import cat.albirar.users.models.registration.RegistrationProcessResultBean;
 import cat.albirar.users.models.tokens.ApprobationTokenBean;
 import cat.albirar.users.models.tokens.RecoverPasswordTokenBean;
 import cat.albirar.users.models.tokens.VerificationTokenBean;
 import cat.albirar.users.models.users.UserBean;
-import cat.albirar.users.models.verification.VerificationProcessBean;
+import cat.albirar.users.models.verification.ProcessBean;
 import cat.albirar.users.registration.IRegistrationService;
 import cat.albirar.users.repos.IUserRepo;
 import cat.albirar.users.verification.EVerificationProcess;
@@ -79,12 +79,12 @@ public class RegistrationService implements IRegistrationService {
      * {@inheritDoc}
      */
     @Override
-    public RegistrationProcessResultBean registerUser(String username, CommunicationChannel preferredChannel, String password) {
+    public RegistrationProcessResultBean registerUser(String username, CommunicationChannelBean preferredChannel, String password) {
         UserBean ub;
         UserBean nUser;
         RegistrationProcessResultBean result;
-        VerificationProcessBean vBean;
-        long idVerification;
+        ProcessBean vBean;
+        String idVerification;
         String token;
         LocalDateTime ldt;
         
@@ -109,12 +109,12 @@ public class RegistrationService implements IRegistrationService {
                 .build()
                 ;
         nUser = userRepo.save(ub);
-        idVerification = 0L;
+        idVerification = null;
         token = null;
         if(verification != EVerificationProcess.NONE) {
             // Start the verification process
             token = tokenManager.encodeToken(tokenManager.generateVerificationTokenBean(nUser, verification).get());
-            vBean = VerificationProcessBean.builder()
+            vBean = ProcessBean.builder()
                     .channel(preferredChannel)
                     .token(token)
                     .build()

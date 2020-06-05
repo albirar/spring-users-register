@@ -34,8 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import cat.albirar.communications.models.CommunicationChannelBean;
 import cat.albirar.users.models.auth.AuthorizationBean;
-import cat.albirar.users.models.communications.CommunicationChannel;
 import cat.albirar.users.models.users.UserBean;
 import cat.albirar.users.repos.IUserRepo;
 import cat.albirar.users.repos.sql.mappings.AuthorizationRowMapper;
@@ -215,7 +215,7 @@ public class UserSqlRepo extends AbstractSqlRepo implements IUserRepo {
      * {@inheritDoc}
      */
     @Override
-    public boolean existsByPreferredChannel(CommunicationChannel preferredChannel) {
+    public boolean existsByPreferredChannel(CommunicationChannelBean preferredChannel) {
         return namedParameterJdbcTemplate.queryForObject(SQL_EXIST_PREF_CHANNEL
                 , new MapSqlParameterSource(UserRowMapper.COL_PREFERREDCHANNEL_TYPE, preferredChannel.getChannelType().name())
                     .addValue(UserRowMapper.COL_PREFERREDCHANNEL_VALUE, preferredChannel.getChannelId())
@@ -226,7 +226,7 @@ public class UserSqlRepo extends AbstractSqlRepo implements IUserRepo {
      * {@inheritDoc}
      */
     @Override
-    public boolean existsBySecondaryChannel(CommunicationChannel secondaryChannel) {
+    public boolean existsBySecondaryChannel(CommunicationChannelBean secondaryChannel) {
         return namedParameterJdbcTemplate.queryForObject(SQL_EXIST_SEC_CHANNEL
                 , new MapSqlParameterSource(UserRowMapper.COL_SECONDARYCHANNEL_TYPE, secondaryChannel.getChannelType().name())
                     .addValue(UserRowMapper.COL_SECONDARYCHANNEL_VALUE, secondaryChannel.getChannelId())

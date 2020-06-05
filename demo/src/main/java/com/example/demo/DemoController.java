@@ -18,7 +18,7 @@
  */
 package com.example.demo;
 
-import static cat.albirar.users.models.communications.ECommunicationChannelType.EMAIL;
+import static cat.albirar.communications.models.ECommunicationChannelType.EMAIL;
 
 import java.security.Principal;
 import java.util.Optional;
@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
-import cat.albirar.users.models.communications.CommunicationChannel;
+import cat.albirar.communications.models.CommunicationChannelBean;
 import cat.albirar.users.models.registration.RegistrationProcessResultBean;
 import cat.albirar.users.models.users.UserBean;
 import cat.albirar.users.registration.IRegistrationService;
@@ -80,7 +80,7 @@ public class DemoController {
         RegistrationProcessResultBean r;
         
         try {
-            r = registrationService.registerUser((String)model.getAttribute("username"), CommunicationChannel.builder().channelType(EMAIL).channelId((String)model.getAttribute("email")).build(), (String)model.getAttribute("password"));
+            r = registrationService.registerUser((String)model.getAttribute("username"), CommunicationChannelBean.builder().channelType(EMAIL).channelId((String)model.getAttribute("email")).build(), (String)model.getAttribute("password"));
             model.addAttribute("user", r.getUser());
             mv = new ModelAndView("signup-ok", model.asMap());
         } catch(DuplicateKeyException e) {

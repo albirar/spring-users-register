@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
-import cat.albirar.users.models.communications.ECommunicationChannelType;
+import cat.albirar.communications.models.ECommunicationChannelType;
 import cat.albirar.users.models.tokens.AbstractTokenBean;
 import cat.albirar.users.models.tokens.AbstractTokenBean.AbstractTokenBeanBuilder;
 import cat.albirar.users.models.tokens.ApprobationTokenBean;

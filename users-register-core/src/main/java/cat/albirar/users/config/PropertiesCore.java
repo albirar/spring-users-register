@@ -18,6 +18,7 @@
  */
 package cat.albirar.users.config;
 
+import cat.albirar.communications.models.ECommunicationChannelType;
 import cat.albirar.users.verification.EVerificationProcess;
 
 /**
@@ -50,5 +51,25 @@ public interface PropertiesCore {
      * @see <a href="https://tools.ietf.org/html/rfc7519#section-4.1.4">https://tools.ietf.org/html/rfc7519#section-4.1.4</a>
      */
     public static final String TOKEN_PROP_EXPIRE = ROOT_TOKENS + ".expire";
+    /**
+     * The root for all 'templates' property configuration.
+     */
+    public static final String ROOT_TEMPLATES = ROOT_USERS_PROPERTIES + ".templates";
+    /**
+     * Property name for configure the "root" path (without extension) of template for verification.
+     * This is the path until name (included) but without extension.
+     * The extension is selected selected depending on channel type and can be {@code .html} or {@code .txt}.
+     * Usually they are two files, with same name but with different extension (one for each type).
+     * The verification process select the correct extension in function of {@link ECommunicationChannelType} of destination.
+     */
+    public static final String TEMPLATE_VERIFICATION_PROPERTY = ROOT_TEMPLATES + ".verification";
+    /**
+     * Property name for configure the "root" path (without extension) of template for confirmation.
+     * This is the path until name (included) but without extension.
+     * The extension is selected selected depending on channel type and can be {@code .html} or {@code .txt}.
+     * Usually they are two files, with same name but with different extension (one for each type).
+     * The verification process select the correct extension in function of {@link ECommunicationChannelType} of destination.
+     */
+    public static final String TEMPLATE_CONFIRMATION_PROPERTY = ROOT_TEMPLATES + ".confirmation";
 
 }

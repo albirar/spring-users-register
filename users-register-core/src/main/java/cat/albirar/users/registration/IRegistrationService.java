@@ -30,8 +30,8 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
 
+import cat.albirar.communications.models.CommunicationChannelBean;
 import cat.albirar.users.config.PropertiesCore;
-import cat.albirar.users.models.communications.CommunicationChannel;
 import cat.albirar.users.models.registration.RegistrationProcessResultBean;
 import cat.albirar.users.models.tokens.AbstractTokenBean;
 import cat.albirar.users.models.tokens.ApprobationTokenBean;
@@ -79,20 +79,20 @@ public interface IRegistrationService {
      * @see #verifyUser(String)
      * @see #approveUser(String) 
      */
-    public RegistrationProcessResultBean registerUser(@NotBlank String username, @NotNull @Validated CommunicationChannel preferredChannel, @Nullable String password);
+    public RegistrationProcessResultBean registerUser(@NotBlank String username, @NotNull @Validated CommunicationChannelBean preferredChannel, @Nullable String password);
     /**
      * Update the associated user of {@code token} to indicate the new state of {@link UserBean#getVerified() verified}.
      * <p>If value of property named {@value #VERIFICATION_MODE_PROPERTY_NAME} is {@link EVerificationProcess#ONE_STEP}, the verification sets the user {@link UserBean#isEnabled() enabled} and {@link UserBean#getRegistered() registered}.</p>
      * <p>If value of property named {@value #VERIFICATION_MODE_PROPERTY_NAME} is {@link EVerificationProcess#TWO_STEP} a {@link #approveUser(String) approbation} should be made to enabling the user.</p>
-     * @param token The token used to {@link #registerUser(String, CommunicationChannel, String)}
+     * @param token The token used to {@link #registerUser(String, CommunicationChannelBean, String)}
      * @return true if the user exists and the previous state is "not-verified", false if user exists but the previous state is not "not-verified" and {@link Optional#empty()} if no user exists with the indicated {@link VerificationTokenBean#getIdUser()}
      */
     public Optional<Boolean> verifyUser(@NotBlank String token);
     /**
      * Update the user to indicate the new state of approved.
      * <p>This is the second step in {@link EVerificationProcess#TWO_STEP} process verification. This step is committed by supervisor user.</p>
-     * <p>Before call to this step, a call to {@link #verifyUser(ObjectId)} should to be made by the link with token and called by owner of {@link CommunicationChannel} indicated in {@link #registerUser(String, CommunicationChannel, String)}.</p>
-     * @param token The token used to {@link #registerUser(String, CommunicationChannel, String)}
+     * <p>Before call to this step, a call to {@link #verifyUser(ObjectId)} should to be made by the link with token and called by owner of {@link CommunicationChannelBean} indicated in {@link #registerUser(String, CommunicationChannelBean, String)}.</p>
+     * @param token The token used to {@link #registerUser(String, CommunicationChannelBean, String)}
      * @return true if the user exists and the previous state is "verified", false if user exists but the previous state is not "verified" or if token is invalid and {@link Optional#empty()} if no user exists with the indicated {@link ApprobationTokenBean#getIdUser()}
      */
     public Optional<Boolean> approveUser(@NotBlank String token);

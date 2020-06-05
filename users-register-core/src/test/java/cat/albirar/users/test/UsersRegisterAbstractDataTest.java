@@ -22,10 +22,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
+import cat.albirar.communications.models.CommunicationChannelBean;
+import cat.albirar.communications.models.ECommunicationChannelType;
 import cat.albirar.users.models.account.AccountBean;
 import cat.albirar.users.models.auth.AuthorizationBean;
-import cat.albirar.users.models.communications.CommunicationChannel;
-import cat.albirar.users.models.communications.ECommunicationChannelType;
 import cat.albirar.users.models.users.UserBean;
 
 /**
@@ -77,16 +77,16 @@ public abstract class UsersRegisterAbstractDataTest {
     };
 //    , "$2y$12$YziFtZGfhbR7XPOHgxL0h.5yQuG/aQZ7O/xM3WfqYt8RrH2O2mwvm"
     
-    public static final CommunicationChannel [] CHANNELS = {
-            CommunicationChannel.builder().channelType(ECommunicationChannelType.MOBILE).channelId("698765432").build()
-            ,CommunicationChannel.builder().channelType(ECommunicationChannelType.EMAIL).channelId("user1@test.com").build()
-            ,CommunicationChannel.builder().channelType(ECommunicationChannelType.EMAIL).channelId("user2@test.com").build()
-            ,CommunicationChannel.builder().channelType(ECommunicationChannelType.MOBILE).channelId("612345678").build()
-            ,CommunicationChannel.builder().channelType(ECommunicationChannelType.MOBILE).channelId("635255869").build()
-            ,CommunicationChannel.builder().channelType(ECommunicationChannelType.MOBILE).channelId("612744895").build()
-            ,CommunicationChannel.builder().channelType(ECommunicationChannelType.MOBILE).channelId("664258359").build()
+    public static final CommunicationChannelBean [] CHANNELS = {
+            CommunicationChannelBean.builder().channelType(ECommunicationChannelType.MOBILE).channelId("698765432").build()
+            ,CommunicationChannelBean.builder().channelType(ECommunicationChannelType.EMAIL).channelId("user1@test.com").build()
+            ,CommunicationChannelBean.builder().channelType(ECommunicationChannelType.EMAIL).channelId("user2@test.com").build()
+            ,CommunicationChannelBean.builder().channelType(ECommunicationChannelType.MOBILE).channelId("612345678").build()
+            ,CommunicationChannelBean.builder().channelType(ECommunicationChannelType.MOBILE).channelId("635255869").build()
+            ,CommunicationChannelBean.builder().channelType(ECommunicationChannelType.MOBILE).channelId("612744895").build()
+            ,CommunicationChannelBean.builder().channelType(ECommunicationChannelType.MOBILE).channelId("664258359").build()
     };
-    public static final CommunicationChannel SAMPLE_NEW_CHANNEL = CommunicationChannel.builder().channelType(ECommunicationChannelType.MOBILE).channelId("654654654").build();
+    public static final CommunicationChannelBean SAMPLE_NEW_CHANNEL = CommunicationChannelBean.builder().channelType(ECommunicationChannelType.MOBILE).channelId("654654654").build();
     
     public static final UserBean SAMPLE_NEW_USER = UserBean.builder()
             .username("newUser")

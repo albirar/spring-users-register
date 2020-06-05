@@ -38,9 +38,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 
+import cat.albirar.communications.models.CommunicationChannelBean;
 import cat.albirar.users.models.account.AccountBean;
 import cat.albirar.users.models.auth.AuthorizationBean;
-import cat.albirar.users.models.communications.CommunicationChannel;
 import lombok.AllArgsConstructor;
 import lombok.Builder.Default;
 import lombok.Data;
@@ -90,13 +90,13 @@ public class UserBean implements UserDetails {
     @Setter(onParam_ = { @NotNull })
     @NotNull
     @Valid
-    private CommunicationChannel preferredChannel;
+    private CommunicationChannelBean preferredChannel;
     /**
      * Secondary channel for communications, as 2 step verification or password recovery.
      * @return The secondary channel for communications
      * @param channel The secondary channel for communications
      */
-    private CommunicationChannel secondaryChannel;
+    private CommunicationChannelBean secondaryChannel;
     /**
      * Password of user, in hex encrypted, cannot be read.
      * @return The encrypted password

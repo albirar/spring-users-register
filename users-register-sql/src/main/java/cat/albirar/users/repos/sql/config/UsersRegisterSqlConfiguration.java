@@ -53,7 +53,6 @@ import cat.albirar.users.repos.sql.mappings.AbstractRowMapper;
 public class UsersRegisterSqlConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(UsersRegisterSqlConfiguration.class);
     
-    
     @Bean
     public DataSource dataSource(UsersRegisterSqlDataSourceConfiguration conf) {
         LOGGER.debug("Configuration: {}", conf);

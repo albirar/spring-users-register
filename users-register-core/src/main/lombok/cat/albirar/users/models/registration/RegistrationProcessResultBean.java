@@ -45,9 +45,9 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @JsonInclude(Include.NON_EMPTY)
 public class RegistrationProcessResultBean implements Serializable {
-    private static final long serialVersionUID = 5297578970917289148L;
+    private static final long serialVersionUID = 1706567901229425392L;
     
-    private long id;
+    private String id;
     @Setter(onParam_ = {@NotNull})
     @NotNull
     private UserBean user;

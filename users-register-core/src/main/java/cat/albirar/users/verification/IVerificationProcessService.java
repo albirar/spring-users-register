@@ -21,7 +21,7 @@ package cat.albirar.users.verification;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import cat.albirar.users.models.verification.VerificationProcessBean;
+import cat.albirar.users.models.verification.ProcessBean;
 
 /**
  * The service contract to start a verifying process for registration.
@@ -34,5 +34,11 @@ public interface IVerificationProcessService {
      * @param verificationProcess The verification process information
      * @return The unique id to process the response from verification
      */
-    public long startVerifyProcess(@NotNull @Valid VerificationProcessBean verificationProcess);
+    public String startVerifyProcess(@NotNull @Valid ProcessBean verificationProcess);
+    /**
+     * Start a approve process.
+     * @param approbationProcess The approbation process information
+     * @return The unique id to process the response from approbation
+     */
+    public String startApproveProcess(@NotNull @Valid ProcessBean approbationProcess);
 }
