@@ -24,6 +24,7 @@ import java.security.SecureRandom;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -35,9 +36,13 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
+import cat.albirar.communications.channels.models.ECommunicationChannelType;
+import cat.albirar.communications.channels.models.LocalizableAttributesCommunicationChannelBean;
+import cat.albirar.communications.channels.models.RecipientBean;
 import cat.albirar.users.registration.IRegistrationService;
 import cat.albirar.users.services.SpringSecurityUserService;
 import cat.albirar.users.services.TokenManager;
+import cat.albirar.users.utils.LocaleUtils;
 import cat.albirar.users.verification.IVerificationProcessService;
 import cat.albirar.users.web.AuthApiController;
 
@@ -51,6 +56,32 @@ import cat.albirar.users.web.AuthApiController;
 @ComponentScan(basePackageClasses = {IRegistrationService.class, IVerificationProcessService.class, TokenManager.class, SpringSecurityUserService.class, AuthApiController.class})
 @EnableWebMvc
 public class UsersRegisterConfiguration {
+
+    /**
+     * Default sender.
+     * @param senderName The display name
+     * @param senderEmail The email
+     * @param senderLocale The locale
+     * @return
+     */
+    @Bean
+    public RecipientBean defaultSender(@Value("${" + PropertiesCore.SENDER_DISPLAY_NAME + "}") String senderName,
+        @Value("${" + PropertiesCore.SENDER_LOCALE + "}") String senderEmail,
+        @Value("${" + PropertiesCore.SENDER_LOCALE + "}") String senderLocale) {
+        
+        return RecipientBean.builder()
+                .displayName(senderName)
+                .channelBean(LocalizableAttributesCommunicationChannelBean.builder()
+                        .channelType(ECommunicationChannelType.EMAIL)
+                        .channelId(senderEmail)
+                        .locale(LocaleUtils.stringToLocale(senderLocale))
+                        .build()
+                        )
+                .preferredLocale(LocaleUtils.stringToLocale(senderLocale))
+                .build()
+                ;
+    }
+    
     /**
      * Password encoder by default.
      */
@@ -70,10 +101,12 @@ public class UsersRegisterConfiguration {
         keyGenerator.init(256, new SecureRandom());
         return keyGenerator.generateKey();
     }
+    
     @Bean
     public LocalValidatorFactoryBean validator() {
         return new LocalValidatorFactoryBean();
     }
+    
     @Bean
     public MethodValidationPostProcessor validationPostProcessor() {
         return new MethodValidationPostProcessor();

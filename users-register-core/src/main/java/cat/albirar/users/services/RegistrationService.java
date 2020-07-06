@@ -20,6 +20,7 @@ package cat.albirar.users.services;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -35,7 +36,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import cat.albirar.communications.models.CommunicationChannelBean;
+import cat.albirar.communications.channels.models.CommunicationChannelBean;
+import cat.albirar.communications.channels.models.LocalizableAttributesCommunicationChannelBean;
+import cat.albirar.communications.channels.models.RecipientBean;
 import cat.albirar.users.models.auth.AuthorizationBean;
 import cat.albirar.users.models.auth.ERole;
 import cat.albirar.users.models.registration.RegistrationProcessResultBean;
@@ -75,11 +78,35 @@ public class RegistrationService implements IRegistrationService {
     
     @Autowired
     private PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private RecipientBean defaultSender;
     /**
      * {@inheritDoc}
      */
     @Override
     public RegistrationProcessResultBean registerUser(String username, CommunicationChannelBean preferredChannel, String password) {
+        return registerUser(defaultSender, username, preferredChannel, Locale.getDefault(), password);
+    }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RegistrationProcessResultBean registerUser(String username, CommunicationChannelBean preferredChannel, Locale locale, String password) {
+        return registerUser(defaultSender, username, preferredChannel, locale, password);
+    }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RegistrationProcessResultBean registerUser(RecipientBean sender, String username, CommunicationChannelBean preferredChannel, String password) {
+        return registerUser(sender, username, preferredChannel, Locale.getDefault(), password);
+    }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RegistrationProcessResultBean registerUser(RecipientBean sender, String username, CommunicationChannelBean preferredChannel, Locale locale, String password) {
         UserBean ub;
         UserBean nUser;
         RegistrationProcessResultBean result;
@@ -100,6 +127,7 @@ public class RegistrationService implements IRegistrationService {
         ub = UserBean.builder()
                 .username(username)
                 .preferredChannel(preferredChannel)
+                .preferredLocale(locale)
                 .authorities(Arrays.asList(new AuthorizationBean [] {AuthorizationBean.builder().authority(ERole.User.name()).build()}))
                 .enabled(verification == EVerificationProcess.NONE) // Only NONE is enabled by default
                 .created(ldt)
@@ -115,12 +143,19 @@ public class RegistrationService implements IRegistrationService {
             // Start the verification process
             token = tokenManager.encodeToken(tokenManager.generateVerificationTokenBean(nUser, verification).get());
             vBean = ProcessBean.builder()
-                    .channel(preferredChannel)
+                    .destination(RecipientBean.builder()
+                            .channelBean(LocalizableAttributesCommunicationChannelBean.builderCopy(preferredChannel)
+                                    .build())
+                            .displayName(username)
+                            .preferredLocale(locale)
+                            .build())
+                    .sender(sender.toBuilder().build())
                     .token(token)
                     .build()
                     ;
             idVerification = verificationProcessService.startVerifyProcess(vBean);
         }
+        
         result = RegistrationProcessResultBean.builder()
                 .id(idVerification)
                 .verificationProcess(verification)
@@ -308,7 +343,12 @@ public class RegistrationService implements IRegistrationService {
         }
         throw new DataRetrievalFailureException(String.format("No user with %s id was found", user.getId()));
     }
-    
+    /**
+     * Check equality for two users in the context of update.
+     * @param saved The saved (original) user
+     * @param update The update (new data) user
+     * @return true if equals and false if not
+     */
     private boolean equalsUsers(UserBean saved, UserBean update) {
         if(!passwordEncoder.matches(update.getPassword(), saved.getPassword())) {
             return false;

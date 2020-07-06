@@ -29,7 +29,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.validation.annotation.Validated;
 
-import cat.albirar.communications.models.CommunicationChannelBean;
+import cat.albirar.communications.channels.models.CommunicationChannelBean;
 import cat.albirar.users.models.users.UserBean;
 
 /**

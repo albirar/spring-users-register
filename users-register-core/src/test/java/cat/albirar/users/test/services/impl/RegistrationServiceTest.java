@@ -28,8 +28,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DataRetrievalFailureException;
 
-import cat.albirar.communications.models.CommunicationChannelBean;
-import cat.albirar.communications.models.ECommunicationChannelType;
+import cat.albirar.communications.channels.models.CommunicationChannelBean;
+import cat.albirar.communications.channels.models.ECommunicationChannelType;
 import cat.albirar.users.models.tokens.ETokenClass;
 import cat.albirar.users.models.users.UserBean;
 import cat.albirar.users.registration.IRegistrationService;

@@ -20,6 +20,7 @@ package cat.albirar.users.models.tokens;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Locale;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -44,7 +45,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @JsonInclude(Include.NON_EMPTY)
 public abstract class AbstractTokenBean implements Serializable {
-    private static final long serialVersionUID = -6277763546800338965L;
+    private static final long serialVersionUID = 2450832153463835060L;
     
     @NotBlank
     @Setter(onParam_ = {@NotBlank})
@@ -62,6 +63,9 @@ public abstract class AbstractTokenBean implements Serializable {
     @NotBlank
     @Setter(onParam_ = {@NotBlank})
     private String username;
+    @NotNull
+    @Setter(onParam_ = {@NotNull})
+    private Locale locale;
     
     /**
      * The class name for this kind of token.

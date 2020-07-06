@@ -24,7 +24,7 @@ import javax.validation.constraints.NotNull;
 import cat.albirar.users.models.verification.ProcessBean;
 
 /**
- * The service contract to start a verifying process for registration.
+ * The service contract to start a verifying process for registration, a approbation process or a recover password process.
  * @author Octavi Forn&eacute;s &lt;<a href="mailto:ofornes@albirar.cat">ofornes@albirar.cat</a>&gt;
  * @since 1.0.0
  */
@@ -32,13 +32,20 @@ public interface IVerificationProcessService {
     /**
      * Start a verification process.
      * @param verificationProcess The verification process information
-     * @return The unique id to process the response from verification
+     * @return The unique id of started process (id of message pushed to communications subsystem)
      */
     public String startVerifyProcess(@NotNull @Valid ProcessBean verificationProcess);
     /**
      * Start a approve process.
      * @param approbationProcess The approbation process information
-     * @return The unique id to process the response from approbation
+     * @return The unique id of started process (id of message pushed to communications subsystem)
      */
     public String startApproveProcess(@NotNull @Valid ProcessBean approbationProcess);
+    /**
+     * Start the process to recover the password of an user.
+     * @param recoverPasswordProcess The recover password process information
+     * @return The unique id of started process (id of message pushed to communications subsystem)
+     */
+    public String startRecoverPasswordProcess(@NotNull @Valid ProcessBean recoverPasswordProcess);
+    
 }

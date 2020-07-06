@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.StringUtils;
 
-import cat.albirar.communications.models.ECommunicationChannelType;
+import cat.albirar.communications.channels.models.ECommunicationChannelType;
 import cat.albirar.users.models.tokens.AbstractTokenBean;
 import cat.albirar.users.models.tokens.ApprobationTokenBean;
 import cat.albirar.users.models.tokens.ApprobationTokenBean.ApprobationTokenBeanBuilder;

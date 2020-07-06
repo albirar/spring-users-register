@@ -18,7 +18,8 @@
  */
 package cat.albirar.users.config;
 
-import cat.albirar.communications.models.ECommunicationChannelType;
+import cat.albirar.communications.channels.models.ECommunicationChannelType;
+import cat.albirar.communications.channels.models.RecipientBean;
 import cat.albirar.users.verification.EVerificationProcess;
 
 /**
@@ -31,6 +32,23 @@ public interface PropertiesCore {
      * The root for all users-register properties.
      */
     public static final String ROOT_USERS_PROPERTIES = "albirar.auth.register";
+    
+    /**
+     * The root for all 'sender' property configuration.
+     */
+    public static final String ROOT_SENDER = ROOT_USERS_PROPERTIES + ".sender";
+    /**
+     * Property name for {@link RecipientBean#getDisplayName()} sender's value.
+     */
+    public static final String SENDER_DISPLAY_NAME = ROOT_SENDER + ".name";
+    /**
+     * Property name for {@link RecipientBean#getChannelBean() email} sender's value.
+     */
+    public static final String SENDER_EMAIL = ROOT_SENDER + ".mail";
+    /**
+     * Property name for {@link RecipientBean#getPreferredLocale()} sender's value.
+     */
+    public static final String SENDER_LOCALE = ROOT_SENDER + ".locale";
     /**
      * Property for establish the verification process of registration.
      * @see EVerificationProcess
@@ -45,7 +63,6 @@ public interface PropertiesCore {
      * @see <a href="https://tools.ietf.org/html/rfc7519#section-4.1.1">https://tools.ietf.org/html/rfc7519#section-4.1.1</a>
      */
     public static final String TOKEN_PROP_ISSUER = ROOT_TOKENS + ".issuer";
-
     /**
      * Property name for establish the expiration days for tokens.
      * @see <a href="https://tools.ietf.org/html/rfc7519#section-4.1.4">https://tools.ietf.org/html/rfc7519#section-4.1.4</a>
@@ -56,20 +73,49 @@ public interface PropertiesCore {
      */
     public static final String ROOT_TEMPLATES = ROOT_USERS_PROPERTIES + ".templates";
     /**
+     * In order to dispose global variables to templates, any variable with this prefix will be put on template rendering.
+     * <p>Any global variable will be visible from templates without this prefix.</p>
+     * <p>By example:</p>
+     * <pre>
+     * albirar.auth.register.templates.variables.logo.image=https://web.com/images/logo.png
+     * </pre>
+     * Will be passed to template as:
+     * <pre>
+     * logo.image=https://web.com/images/logo.png
+     * </pre>
+     */
+    public static final String TEMPLATES_GLOBAL_VARIABLES_PREFIX = ROOT_TEMPLATES + ".variables";
+    public static final String TEMPLATES_GLOBAL_VARIABLES_PREFIX_DOT = TEMPLATES_GLOBAL_VARIABLES_PREFIX + ".";
+    /**
      * Property name for configure the "root" path (without extension) of template for verification.
      * This is the path until name (included) but without extension.
-     * The extension is selected selected depending on channel type and can be {@code .html} or {@code .txt}.
+     * The extension is selected depending on channel type and can be {@code .html} or {@code .txt}.
      * Usually they are two files, with same name but with different extension (one for each type).
      * The verification process select the correct extension in function of {@link ECommunicationChannelType} of destination.
      */
     public static final String TEMPLATE_VERIFICATION_PROPERTY = ROOT_TEMPLATES + ".verification";
+    
     /**
-     * Property name for configure the "root" path (without extension) of template for confirmation.
+     * Property name for configure the "root" path (without extension) of template for approbation.
      * This is the path until name (included) but without extension.
-     * The extension is selected selected depending on channel type and can be {@code .html} or {@code .txt}.
+     * The extension is selected depending on channel type and can be {@code .html} or {@code .txt}.
      * Usually they are two files, with same name but with different extension (one for each type).
      * The verification process select the correct extension in function of {@link ECommunicationChannelType} of destination.
      */
-    public static final String TEMPLATE_CONFIRMATION_PROPERTY = ROOT_TEMPLATES + ".confirmation";
+    public static final String TEMPLATE_APPROBATION_PROPERTY = ROOT_TEMPLATES + ".approbation";
+    /**
+     * Property name for configure the "root" path (without extension) of template for recover password.
+     * This is the path until name (included) but without extension.
+     * The extension is selected depending on channel type and can be {@code .html} or {@code .txt}.
+     * Usually they are two files, with same name but with different extension (one for each type).
+     * The verification process select the correct extension in function of {@link ECommunicationChannelType} of destination.
+     */
+    public static final String TEMPLATE_RECOVER_PROPERTY = ROOT_TEMPLATES + ".recover";
+    /**
+     * Property name for configure the "root" path (without extension) of resources messages for templates rendering.
+     * This is the path until name (included) but without extension nor locale specification.
+     * The template system select the correct message property file in function of locale of destination.
+     */
+    public static final String TEMPLATE_RESOURCES_PROPERTY = ROOT_TEMPLATES + ".resources";
 
 }

@@ -22,8 +22,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
-import cat.albirar.communications.models.CommunicationChannelBean;
-import cat.albirar.communications.models.ECommunicationChannelType;
+import cat.albirar.communications.channels.models.CommunicationChannelBean;
+import cat.albirar.communications.channels.models.ECommunicationChannelType;
 import cat.albirar.users.models.account.AccountBean;
 import cat.albirar.users.models.auth.AuthorizationBean;
 import cat.albirar.users.models.users.UserBean;

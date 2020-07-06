@@ -23,7 +23,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-import cat.albirar.communications.models.ECommunicationChannelType;
+import cat.albirar.communications.channels.models.ECommunicationChannelType;
 import cat.albirar.users.models.tokens.AbstractTokenBean;
 import cat.albirar.users.models.tokens.ApprobationTokenBean;
 import cat.albirar.users.models.tokens.ETokenClass;
@@ -46,6 +46,10 @@ public interface ITokenManager {
      * Claim name for {@link UserBean#getId()}.
      */
     public final static String CLAIM_USERID = "userId";
+    /**
+     * Claim name for {@link UserBean#getPreferredLocale()}.
+     */
+    public final static String CLAIM_LOCALE = "locale";
     /**
      * Claim name for {@link ApprobationTokenBean#getIdApprover()}.
      */

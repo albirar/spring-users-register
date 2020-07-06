@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
-import cat.albirar.communications.models.ECommunicationChannelType;
+import cat.albirar.communications.channels.models.ECommunicationChannelType;
 import cat.albirar.users.models.tokens.AbstractTokenBean;
 import cat.albirar.users.models.tokens.AbstractTokenBean.AbstractTokenBeanBuilder;
 import cat.albirar.users.models.tokens.ApprobationTokenBean;
@@ -44,6 +44,7 @@ import cat.albirar.users.models.tokens.ETokenClass;
 import cat.albirar.users.models.tokens.RecoverPasswordTokenBean;
 import cat.albirar.users.models.tokens.VerificationTokenBean;
 import cat.albirar.users.models.users.UserBean;
+import cat.albirar.users.utils.LocaleUtils;
 import cat.albirar.users.verification.EVerificationProcess;
 import cat.albirar.users.verification.ITokenManager;
 import io.jsonwebtoken.Claims;
@@ -74,6 +75,7 @@ public class TokenManager implements ITokenManager {
     
     @Autowired
     private SecretKey jwsSecretKey;
+    
     /**
      * {@inheritDoc}
      */
@@ -126,6 +128,7 @@ public class TokenManager implements ITokenManager {
                     .setIssuedAt(Date.from(tokenBean.getIssued().atZone(ZoneId.systemDefault()).toInstant()))
                     .setExpiration(Date.from(tokenBean.getExpire().atZone(ZoneId.systemDefault()).toInstant()))
                     .claim(CLAIM_USERID, tokenBean.getIdUser())
+                    .claim(CLAIM_LOCALE, tokenBean.getLocale().toString())
                     .claim(CLAIM_TOKEN_CLASS, tokenBean.getTokenClass().name())
                     ;
                 if(tokenBean.getTokenClass() == ETokenClass.VERIFICATION) {
@@ -229,6 +232,7 @@ public class TokenManager implements ITokenManager {
             .issued(ldt)
             .expire(ldt.plusDays(daysToExpire))
             .idUser(user.getId())
+            .locale(user.getPreferredLocale())
             .username(user.getUsername())
             ;
         return tokenBeanBuilder;
@@ -316,6 +320,7 @@ public class TokenManager implements ITokenManager {
             .issued(LocalDateTime.from(body.getIssuedAt().toInstant().atZone(ZoneId.systemDefault())))
             .expire(LocalDateTime.from(body.getExpiration().toInstant().atZone(ZoneId.systemDefault())))
             .idUser(body.get(CLAIM_USERID, String.class))
+            .locale(LocaleUtils.stringToLocale(body.get(CLAIM_LOCALE, String.class)))
             .username(body.getSubject())
             ;
         return tokenBeanBuilder;
@@ -330,6 +335,7 @@ public class TokenManager implements ITokenManager {
      * <li>{@link Claims#getExpiration()} is not-null</li>
      * <li>{@link Claims#getSubject()} is not-blank</li>
      * <li>{@code body} {@link Claims#containsKey(Object) contains} a claim named {@value ITokenManager#CLAIM_USERID} and his content is not-blank</li>
+     * <li>{@code body} {@link Claims#containsKey(Object) contains} a claim named {@value ITokenManager#CLAIM_LOCALE} and his content is not-blank</li>
      * <li>{@code body} {@link Claims#containsKey(Object) contains} a claim named {@value ITokenManager#CLAIM_TOKEN_CLASS} and his content is not-blank and is equal to one of {@link ETokenClass} element {@link Enum#name() name}</li>
      * </ul>
      * Depending on value of {@link Claims#get(String, Class) claim} named {@value ITokenManager#CLAIM_TOKEN_CLASS}, make further checks:
@@ -365,6 +371,7 @@ public class TokenManager implements ITokenManager {
                 && body.getExpiration() != null
                 && StringUtils.hasText(body.getSubject())
                 && StringUtils.hasText(body.get(CLAIM_USERID, String.class))
+                && StringUtils.hasText(body.get(CLAIM_LOCALE, String.class))
                 && StringUtils.hasText(body.get(CLAIM_TOKEN_CLASS, String.class)) ) {
             
             tkcls = decodeTokenClass(body);

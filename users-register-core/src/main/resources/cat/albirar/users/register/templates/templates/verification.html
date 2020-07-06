@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="verification.css" th:href="@{/cat/albirar/users/register/templates/templates/verification.css}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title th:text="#{albirar.auth.register.templates.messages.verification.title}">Title message</title>
+</head>
+<body>
+	<table class="body-wrap">
+		<tr>
+			<td class="align-top"></td>
+			<td width="400" class="container">
+				<div class="content">
+					<table class="main">
+						<tr>
+							<td class="logo">
+ 								<img th:src="@{/cat/albirar/users/register/resources/logo-register.png}" src="../../resources/logo-register.png">
+
+							</td>
+						</tr>
+						<tr>
+							<td class="content-wrap">
+								<table>
+									<tr>
+										<td class="content-block">
+											<p th:utext="#{albirar.auth.register.templates.messages.verification.welcome}">
+												Welcome message
+											</p>
+										</td>
+									</tr>
+									<tr>
+										<td class="action">
+											<a href="/api/v1/user/confirm-email/KGCCMTYQF" class="btn-primary"
+											th:text="#{albirar.auth.register.templates.messages.verification.btn.confirm}">Confirm message</a>
+										</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</td>
+		</tr>
+	</table>
+<div class="footer">
+	<table width="100%" class="footer-table">
+		<tr>
+			<td class="align-center align-top content-block" th:utext="#{albirar.auth.register.templates.messages.verification.foot.company}">foot text message</a>
+			</td>
+		</tr>
+	</table>
+</div>
+</body>
+</html>

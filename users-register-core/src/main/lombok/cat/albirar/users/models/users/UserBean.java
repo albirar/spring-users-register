@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -38,7 +39,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 
-import cat.albirar.communications.models.CommunicationChannelBean;
+import cat.albirar.communications.channels.models.CommunicationChannelBean;
 import cat.albirar.users.models.account.AccountBean;
 import cat.albirar.users.models.auth.AuthorizationBean;
 import lombok.AllArgsConstructor;
@@ -63,7 +64,7 @@ import lombok.experimental.SuperBuilder;
 @JsonInclude(Include.NON_EMPTY)
 @Persistent
 public class UserBean implements UserDetails {
-    private static final long serialVersionUID = 788869657467918808L;
+    private static final long serialVersionUID = 8965242082090484736L;
     
     /**
 	 * Unique identifier of user, for internal and extensions use.
@@ -103,6 +104,11 @@ public class UserBean implements UserDetails {
      * @param password The encrypted password
      */
 	private String password;
+	
+	@Default
+	@NotNull
+	@Setter(onParam_ = { @NotNull })
+    private Locale preferredLocale = Locale.getDefault();
     /**
      * Timestamp of creation on register.
      */

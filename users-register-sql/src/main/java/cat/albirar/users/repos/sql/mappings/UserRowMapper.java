@@ -40,8 +40,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import cat.albirar.communications.models.CommunicationChannelBean;
-import cat.albirar.communications.models.ECommunicationChannelType;
+import cat.albirar.communications.channels.models.CommunicationChannelBean;
+import cat.albirar.communications.channels.models.ECommunicationChannelType;
 import cat.albirar.users.models.users.UserBean;
 
 /**

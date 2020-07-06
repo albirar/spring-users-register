@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.util.StringUtils;
 
-import cat.albirar.communications.models.CommunicationChannelBean;
+import cat.albirar.communications.channels.models.CommunicationChannelBean;
 import cat.albirar.users.models.auth.AuthorizationBean;
 import cat.albirar.users.models.auth.ERole;
 import cat.albirar.users.models.users.UserBean;

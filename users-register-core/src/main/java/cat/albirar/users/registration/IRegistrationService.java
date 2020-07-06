@@ -18,6 +18,7 @@
  */
 package cat.albirar.users.registration;
 
+import java.util.Locale;
 import java.util.Optional;
 
 import javax.validation.Valid;
@@ -25,12 +26,14 @@ import javax.validation.ValidationException;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
 
-import cat.albirar.communications.models.CommunicationChannelBean;
+import cat.albirar.communications.channels.models.CommunicationChannelBean;
+import cat.albirar.communications.channels.models.RecipientBean;
 import cat.albirar.users.config.PropertiesCore;
 import cat.albirar.users.models.registration.RegistrationProcessResultBean;
 import cat.albirar.users.models.tokens.AbstractTokenBean;
@@ -58,7 +61,31 @@ public interface IRegistrationService {
      */
     public static final String VERIFICATION_MODE_PROPERTY_NAME = PropertiesCore.VERIFICATION_MODE_PROPERTY_NAME;
     /**
-     * Register a new user with the {@code username}, {@code preferredChannel} and {@code password} (optional). 
+     * Register a new user from {@link PropertiesCore#ROOT_SENDER default sender} with the {@code username}, {@code preferredChannel}, {@link Locale#getDefault() default locale} and {@code password} (optional). 
+     * The process is:
+     * <ol>
+     * <li>Create the user at the registry but {@link UserBean#isEnabled() disabled}, {@link UserBean#getVerified() not verified} and {@link UserBean#getRegistered() not registered}</li>
+     * <li>Depending on value of property named {@value #VERIFICATION_MODE_PROPERTY_NAME}:
+     *    <ul>
+     *       <li>If value is {@link EVerificationProcess#NONE}, no verification nor approbation is needed in order to register the new user, that becomes {@link UserBean#isEnabled() enabled}, {@link UserBean#getVerified() verified} and {@link UserBean#getRegistered() registered} upon creation</li>
+     *       <li>If value is {@link EVerificationProcess#ONE_STEP}, the owner of {@link UserBean#getPreferredChannel() preferred channel} should to verify the registration of the new user, that becomes {@link UserBean#isEnabled() disabled}, {@link UserBean#getVerified() not verified} and {@link UserBean#getRegistered() not registered} until verification is made</li>
+     *       <li>If value is {@link EVerificationProcess#TWO_STEP}, in addition to verification, a supervisor should to approve the registration; meanwhile the new user becomes {@link UserBean#isEnabled() disabled}, {@link UserBean#getVerified() not verified} and {@link UserBean#getRegistered() not registered} until verification AND approbation is made</li>
+     *    </ul>
+     * </li>
+     * <li>The user is enabled or disabled</li>
+     * </ol>
+     * @param senderChannel The sender channel (from on email)
+     * @param username The user name of new user
+     * @param preferredChannel The preferred channel to register user and send verification message
+     * @param password An optional password provided in case of 
+     * @return The result, with {@link UserBean#getId()} informed and disabled depending on registration process configuration
+     * @throws DuplicateKeyException If {@code username} or {@code preferredChannel} exists in register
+     * @see #verifyUser(String)
+     * @see #approveUser(String) 
+     */
+    public RegistrationProcessResultBean registerUser(@NotBlank String username, @NotNull @Validated CommunicationChannelBean preferredChannel, @Nullable String password);
+    /**
+     * Register a new user from {@link PropertiesCore#ROOT_SENDER default sender} with the {@code username}, {@code preferredChannel}, {@code locale} and {@code password} (optional). 
      * The process is:
      * <ol>
      * <li>Create the user at the registry but {@link UserBean#isEnabled() disabled}, {@link UserBean#getVerified() not verified} and {@link UserBean#getRegistered() not registered}</li>
@@ -73,13 +100,63 @@ public interface IRegistrationService {
      * </ol>
      * @param username The user name of new user
      * @param preferredChannel The preferred channel to register user and send verification message
+     * @param locale The preferred locale for this user
      * @param password An optional password provided in case of 
      * @return The result, with {@link UserBean#getId()} informed and disabled depending on registration process configuration
      * @throws DuplicateKeyException If {@code username} or {@code preferredChannel} exists in register
      * @see #verifyUser(String)
      * @see #approveUser(String) 
      */
-    public RegistrationProcessResultBean registerUser(@NotBlank String username, @NotNull @Validated CommunicationChannelBean preferredChannel, @Nullable String password);
+    public RegistrationProcessResultBean registerUser(@NotBlank String username, @NotNull @Validated CommunicationChannelBean preferredChannel, @NotNull Locale locale, @Nullable String password);
+    /**
+     * Register a new user from {@code sender} with the {@code username}, {@code preferredChannel}, {@link Locale#getDefault() default locale} and {@code password} (optional). 
+     * The process is:
+     * <ol>
+     * <li>Create the user at the registry but {@link UserBean#isEnabled() disabled}, {@link UserBean#getVerified() not verified} and {@link UserBean#getRegistered() not registered}</li>
+     * <li>Depending on value of property named {@value #VERIFICATION_MODE_PROPERTY_NAME}:
+     *    <ul>
+     *       <li>If value is {@link EVerificationProcess#NONE}, no verification nor approbation is needed in order to register the new user, that becomes {@link UserBean#isEnabled() enabled}, {@link UserBean#getVerified() verified} and {@link UserBean#getRegistered() registered} upon creation</li>
+     *       <li>If value is {@link EVerificationProcess#ONE_STEP}, the owner of {@link UserBean#getPreferredChannel() preferred channel} should to verify the registration of the new user, that becomes {@link UserBean#isEnabled() disabled}, {@link UserBean#getVerified() not verified} and {@link UserBean#getRegistered() not registered} until verification is made</li>
+     *       <li>If value is {@link EVerificationProcess#TWO_STEP}, in addition to verification, a supervisor should to approve the registration; meanwhile the new user becomes {@link UserBean#isEnabled() disabled}, {@link UserBean#getVerified() not verified} and {@link UserBean#getRegistered() not registered} until verification AND approbation is made</li>
+     *    </ul>
+     * </li>
+     * <li>The user is enabled or disabled</li>
+     * </ol>
+     * @param sender The sender to use
+     * @param username The user name of new user
+     * @param preferredChannel The preferred channel to register user and send verification message
+     * @param password An optional password provided in case of 
+     * @return The result, with {@link UserBean#getId()} informed and disabled depending on registration process configuration
+     * @throws DuplicateKeyException If {@code username} or {@code preferredChannel} exists in register
+     * @see #verifyUser(String)
+     * @see #approveUser(String) 
+     */
+    public RegistrationProcessResultBean registerUser(@NotNull @Valid RecipientBean sender, @NotBlank String username, @NotNull @Validated CommunicationChannelBean preferredChannel, @Nullable String password);
+    /**
+     * Register a new user from {@code sender} with the {@code username}, {@code preferredChannel}, {@code locale} and {@code password} (optional). 
+     * The process is:
+     * <ol>
+     * <li>Create the user at the registry but {@link UserBean#isEnabled() disabled}, {@link UserBean#getVerified() not verified} and {@link UserBean#getRegistered() not registered}</li>
+     * <li>Depending on value of property named {@value #VERIFICATION_MODE_PROPERTY_NAME}:
+     *    <ul>
+     *       <li>If value is {@link EVerificationProcess#NONE}, no verification nor approbation is needed in order to register the new user, that becomes {@link UserBean#isEnabled() enabled}, {@link UserBean#getVerified() verified} and {@link UserBean#getRegistered() registered} upon creation</li>
+     *       <li>If value is {@link EVerificationProcess#ONE_STEP}, the owner of {@link UserBean#getPreferredChannel() preferred channel} should to verify the registration of the new user, that becomes {@link UserBean#isEnabled() disabled}, {@link UserBean#getVerified() not verified} and {@link UserBean#getRegistered() not registered} until verification is made</li>
+     *       <li>If value is {@link EVerificationProcess#TWO_STEP}, in addition to verification, a supervisor should to approve the registration; meanwhile the new user becomes {@link UserBean#isEnabled() disabled}, {@link UserBean#getVerified() not verified} and {@link UserBean#getRegistered() not registered} until verification AND approbation is made</li>
+     *    </ul>
+     * </li>
+     * <li>The user is enabled or disabled</li>
+     * </ol>
+     * @param sender The sender to use
+     * @param username The user name of new user
+     * @param preferredChannel The preferred channel to register user and send verification message
+     * @param locale The preferred locale for this user
+     * @param password An optional password provided in case of 
+     * @return The result, with {@link UserBean#getId()} informed and disabled depending on registration process configuration
+     * @throws DuplicateKeyException If {@code username} or {@code preferredChannel} exists in register
+     * @see #verifyUser(String)
+     * @see #approveUser(String) 
+     */
+    public RegistrationProcessResultBean registerUser(@NotNull @Valid RecipientBean sender, @NotBlank String username, @NotNull @Validated CommunicationChannelBean preferredChannel, @NotNull Locale locale, @Nullable String password);
     /**
      * Update the associated user of {@code token} to indicate the new state of {@link UserBean#getVerified() verified}.
      * <p>If value of property named {@value #VERIFICATION_MODE_PROPERTY_NAME} is {@link EVerificationProcess#ONE_STEP}, the verification sets the user {@link UserBean#isEnabled() enabled} and {@link UserBean#getRegistered() registered}.</p>

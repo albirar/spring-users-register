@@ -27,7 +27,7 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-import cat.albirar.communications.models.CommunicationChannelBean;
+import cat.albirar.communications.channels.models.RecipientBean;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -50,8 +50,18 @@ public class ProcessBean implements Serializable {
     @Setter(onParam_ = {@NotBlank})
     @NotBlank
     private String token;
+    
+    @Setter(onParam_ = {@NotBlank})
+    @NotBlank
+    private String title;
+    
     @Setter(onParam_ = {@NotNull, @Valid})
     @NotNull
     @Valid
-    private CommunicationChannelBean channel;
+    private RecipientBean destination;
+    
+    @Setter(onParam_ = {@NotNull, @Valid})
+    @NotNull
+    @Valid
+    private RecipientBean sender;
 }

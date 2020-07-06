@@ -34,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import cat.albirar.communications.models.CommunicationChannelBean;
+import cat.albirar.communications.channels.models.CommunicationChannelBean;
 import cat.albirar.users.models.auth.AuthorizationBean;
 import cat.albirar.users.models.users.UserBean;
 import cat.albirar.users.repos.IUserRepo;

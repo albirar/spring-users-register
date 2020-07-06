@@ -1,0 +1,8 @@
+[# th:text="#{albirar.auth.register.templates.messages.verification.title}"]Title message[/]
+
+[# th:utext="#{albirar.auth.register.templates.messages.verification.welcome}"]Welcome message[/]
+
+[# th:text="#{albirar.auth.register.templates.messages.verification.btn.confirm}"][/]
+https://api/auth/1.0/verification/[# th:text="${token}"][/]
+
+[# th:utext="#{albirar.auth.register.templates.messages.verification.foot.company}"]foot text message[/]

@@ -33,7 +33,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import cat.albirar.communications.models.CommunicationChannelBean;
+import cat.albirar.communications.channels.models.CommunicationChannelBean;
 import cat.albirar.users.models.account.AccountBean;
 import cat.albirar.users.models.users.UserBean;
 import cat.albirar.users.repos.IAccountRepo;
@@ -75,7 +75,7 @@ public class MockUtils extends UsersRegisterAbstractDataTest {
      *    <ul>
      *       <li>{@link IUserRepo#findById(String)} with {@code user.getId()} return {@link Optional#of(Object) Optional.of(user)}</li>
      *       <li>{@link IUserRepo#existsByUsername(String)} with {@code user.getUsername()} return true</li>
-     *       <li>{@link IUserRepo#existsByPreferredChannel(cat.albirar.communications.models.CommunicationChannelBean)} with {@code user.getPreferredChannel()} return true</li>
+     *       <li>{@link IUserRepo#existsByPreferredChannel(cat.albirar.communications.channels.models.CommunicationChannelBean)} with {@code user.getPreferredChannel()} return true</li>
      *    </ul>
      * </li>
      * </ul>

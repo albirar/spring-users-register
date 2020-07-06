@@ -16,6 +16,7 @@ CREATE TABLE albirar_user
 	,sc_type VARCHAR(50)
 	,sc_value VARCHAR(255) 
 	,password VARCHAR(255) NOT NULL
+	,locale VARCHAR(6) NOT NULL
 	,created TIMESTAMP NOT NULL DEFAULT NOW()
 	,verified TIMESTAMP NULL
 	,registered TIMESTAMP NULL
