@@ -28,9 +28,9 @@ There should be as easy as include some annotations and configuration properties
   * Model has:
     * An immutable ID, assigned on creation and useful to associate specific data
     * A mutable username, for login purposes
-    * An immutable Creation date (timestamp of creation)
-    * Verification date (timestamp of verification by user)
-    * Registration date (timestamp of approbation by system administrator)
+    * An immutable creation date (timestamp of creation)
+    * An immutable verification date (timestamp of verification by user)
+    * An immutable registration date (timestamp of approbation by system administrator)
     * Preferred communication channel (as email or phone)
     * Optional second communication channel (as email or phone)
     * An encrypted password
@@ -47,8 +47,8 @@ There should be as easy as include some annotations and configuration properties
 * Communications
   * Allow to send email messages
   * Allow to send phone messages in form of:
-    * SMS
-    * Telegram, whatsapp, messenger, etc
+    * (Current) SMS
+    * (Future) Telegram, whatsapp, messenger, etc
 * Customization
   * Callbacks before and after some operations on **users**:
     * Creation
