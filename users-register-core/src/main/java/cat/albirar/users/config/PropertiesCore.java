@@ -19,7 +19,7 @@
 package cat.albirar.users.config;
 
 import cat.albirar.communications.channels.models.ECommunicationChannelType;
-import cat.albirar.communications.channels.models.RecipientBean;
+import cat.albirar.communications.channels.models.ContactBean;
 import cat.albirar.users.verification.EVerificationProcess;
 
 /**
@@ -38,15 +38,15 @@ public interface PropertiesCore {
      */
     public static final String ROOT_SENDER = ROOT_USERS_PROPERTIES + ".sender";
     /**
-     * Property name for {@link RecipientBean#getDisplayName()} sender's value.
+     * Property name for {@link ContactBean#getDisplayName()} sender's value.
      */
     public static final String SENDER_DISPLAY_NAME = ROOT_SENDER + ".name";
     /**
-     * Property name for {@link RecipientBean#getChannelBean() email} sender's value.
+     * Property name for {@link ContactBean#getChannelBean() email} sender's value.
      */
     public static final String SENDER_EMAIL = ROOT_SENDER + ".mail";
     /**
-     * Property name for {@link RecipientBean#getPreferredLocale()} sender's value.
+     * Property name for {@link ContactBean#getPreferredLocale()} sender's value.
      */
     public static final String SENDER_LOCALE = ROOT_SENDER + ".locale";
     /**

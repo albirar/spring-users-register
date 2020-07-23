@@ -38,7 +38,7 @@ import org.springframework.validation.annotation.Validated;
 
 import cat.albirar.communications.channels.models.CommunicationChannelBean;
 import cat.albirar.communications.channels.models.LocalizableAttributesCommunicationChannelBean;
-import cat.albirar.communications.channels.models.RecipientBean;
+import cat.albirar.communications.channels.models.ContactBean;
 import cat.albirar.users.models.auth.AuthorizationBean;
 import cat.albirar.users.models.auth.ERole;
 import cat.albirar.users.models.registration.RegistrationProcessResultBean;
@@ -80,7 +80,7 @@ public class RegistrationService implements IRegistrationService {
     private PasswordEncoder passwordEncoder;
     
     @Autowired
-    private RecipientBean defaultSender;
+    private ContactBean defaultSender;
     /**
      * {@inheritDoc}
      */
@@ -99,14 +99,14 @@ public class RegistrationService implements IRegistrationService {
      * {@inheritDoc}
      */
     @Override
-    public RegistrationProcessResultBean registerUser(RecipientBean sender, String username, CommunicationChannelBean preferredChannel, String password) {
+    public RegistrationProcessResultBean registerUser(ContactBean sender, String username, CommunicationChannelBean preferredChannel, String password) {
         return registerUser(sender, username, preferredChannel, Locale.getDefault(), password);
     }
     /**
      * {@inheritDoc}
      */
     @Override
-    public RegistrationProcessResultBean registerUser(RecipientBean sender, String username, CommunicationChannelBean preferredChannel, Locale locale, String password) {
+    public RegistrationProcessResultBean registerUser(ContactBean sender, String username, CommunicationChannelBean preferredChannel, Locale locale, String password) {
         UserBean ub;
         UserBean nUser;
         RegistrationProcessResultBean result;
@@ -143,7 +143,7 @@ public class RegistrationService implements IRegistrationService {
             // Start the verification process
             token = tokenManager.encodeToken(tokenManager.generateVerificationTokenBean(nUser, verification).get());
             vBean = ProcessBean.builder()
-                    .destination(RecipientBean.builder()
+                    .destination(ContactBean.builder()
                             .channelBean(LocalizableAttributesCommunicationChannelBean.builderCopy(preferredChannel)
                                     .build())
                             .displayName(username)

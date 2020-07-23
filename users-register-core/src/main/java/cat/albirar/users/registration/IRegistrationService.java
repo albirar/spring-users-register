@@ -33,7 +33,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
 
 import cat.albirar.communications.channels.models.CommunicationChannelBean;
-import cat.albirar.communications.channels.models.RecipientBean;
+import cat.albirar.communications.channels.models.ContactBean;
 import cat.albirar.users.config.PropertiesCore;
 import cat.albirar.users.models.registration.RegistrationProcessResultBean;
 import cat.albirar.users.models.tokens.AbstractTokenBean;
@@ -131,7 +131,7 @@ public interface IRegistrationService {
      * @see #verifyUser(String)
      * @see #approveUser(String) 
      */
-    public RegistrationProcessResultBean registerUser(@NotNull @Valid RecipientBean sender, @NotBlank String username, @NotNull @Validated CommunicationChannelBean preferredChannel, @Nullable String password);
+    public RegistrationProcessResultBean registerUser(@NotNull @Valid ContactBean sender, @NotBlank String username, @NotNull @Validated CommunicationChannelBean preferredChannel, @Nullable String password);
     /**
      * Register a new user from {@code sender} with the {@code username}, {@code preferredChannel}, {@code locale} and {@code password} (optional). 
      * The process is:
@@ -156,7 +156,7 @@ public interface IRegistrationService {
      * @see #verifyUser(String)
      * @see #approveUser(String) 
      */
-    public RegistrationProcessResultBean registerUser(@NotNull @Valid RecipientBean sender, @NotBlank String username, @NotNull @Validated CommunicationChannelBean preferredChannel, @NotNull Locale locale, @Nullable String password);
+    public RegistrationProcessResultBean registerUser(@NotNull @Valid ContactBean sender, @NotBlank String username, @NotNull @Validated CommunicationChannelBean preferredChannel, @NotNull Locale locale, @Nullable String password);
     /**
      * Update the associated user of {@code token} to indicate the new state of {@link UserBean#getVerified() verified}.
      * <p>If value of property named {@value #VERIFICATION_MODE_PROPERTY_NAME} is {@link EVerificationProcess#ONE_STEP}, the verification sets the user {@link UserBean#isEnabled() enabled} and {@link UserBean#getRegistered() registered}.</p>

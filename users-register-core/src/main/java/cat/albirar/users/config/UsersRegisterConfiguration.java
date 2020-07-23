@@ -38,7 +38,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import cat.albirar.communications.channels.models.ECommunicationChannelType;
 import cat.albirar.communications.channels.models.LocalizableAttributesCommunicationChannelBean;
-import cat.albirar.communications.channels.models.RecipientBean;
+import cat.albirar.communications.channels.models.ContactBean;
 import cat.albirar.users.registration.IRegistrationService;
 import cat.albirar.users.services.SpringSecurityUserService;
 import cat.albirar.users.services.TokenManager;
@@ -65,11 +65,11 @@ public class UsersRegisterConfiguration {
      * @return
      */
     @Bean
-    public RecipientBean defaultSender(@Value("${" + PropertiesCore.SENDER_DISPLAY_NAME + "}") String senderName,
+    public ContactBean defaultSender(@Value("${" + PropertiesCore.SENDER_DISPLAY_NAME + "}") String senderName,
         @Value("${" + PropertiesCore.SENDER_LOCALE + "}") String senderEmail,
         @Value("${" + PropertiesCore.SENDER_LOCALE + "}") String senderLocale) {
         
-        return RecipientBean.builder()
+        return ContactBean.builder()
                 .displayName(senderName)
                 .channelBean(LocalizableAttributesCommunicationChannelBean.builder()
                         .channelType(ECommunicationChannelType.EMAIL)
